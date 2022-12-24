@@ -4,16 +4,16 @@ project:
 website:
   title: "rambling"
   navbar:
-    left:
-      - href: ./quarto/index.qmd
-        text: Home
-      - ./quarto/about.qmd
-
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/tomjrwilliams
+      - icon: twitter
+        href: https://twitter.com/tjrwilliams
 format:
   html:
     theme: flatly
-    css: ./quarto/styles.css
-    toc: true
+    css: styles.css
 
 
 
