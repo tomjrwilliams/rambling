@@ -8,6 +8,8 @@ website:
       - about.qmd
       - icon: github
         href: https://github.com/tomjrwilliams
+      - icon: linkedin
+        href: https://linkedin.com/in/tomjrwilliams/
       - icon: twitter
         href: https://twitter.com/tjrwilliams
 format:
