@@ -5,14 +5,14 @@ website:
   title: "site"
   navbar:
     left:
-      - href: index.qmd
+      - href: ./quarto/index.qmd
         text: Home
-      - about.qmd
+      - ./quarto/about.qmd
 
 format:
   html:
     theme: cosmo
-    css: styles.css
+    css: ./quarto/styles.css
     toc: true
 
 
