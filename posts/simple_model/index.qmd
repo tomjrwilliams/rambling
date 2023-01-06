@@ -1,0 +1,84 @@
+---
+title: "Simple Model"
+author: "Tom Williams"
+date: "2022-12-30"
+categories: []
+draft: false
+---
+
+Intro
+
+## Model
+
+First we have a demand curve, market size as a function of price:
+
+For now, downward sloping with price, with a max at ..., and min bound at zero.
+
+```{python}
+def demand_curve(price):
+    return
+
+## graph of samples for different price
+```
+
+Given this, we can then observe a sample demand for a given period, given a price:
+
+```{python}
+def demand_sample(price):
+    q = demand_curve(price)
+    return
+
+## graph of samples for different price
+## could also be grid, for different noise
+```
+
+Then, given a cost per unit curve with quantity:
+
+Assume high at low quantity (fixed costs), optimum in middle, then gets more expensive.
+
+```{python}
+def supply_curve(quantity):
+    return
+
+## graph of price for different quantities
+```
+
+Which we also observe under noise:
+
+```{python}
+def cost_sample(quantity):
+    return
+
+## graph of price for different quantities
+```
+
+We can then plot the profit for a given price:
+
+```{python}
+def profit_sample(price):
+    return
+
+## graph of profit, with price -> demand -> cost per unit
+```
+
+We can then optimise the profit, for a given set of params:
+
+```{python}
+def optimal_price(price):
+    return
+
+## graph of optimal price for distribution of other params
+## possibly a grid if two possible params
+```
+
+The point of using stochastic gradient descent is that later the models won't be analytically solvable.
+
+## Variations
+
+With this, we can then see how it changes under different assumptions of the parametric form.
+
+Eg. gaussian demand with asymmetric noise, or particularly skew
+
+If we make the demand binomial, say - with average at the demand curve point
+
+Cost sample asymmetric noise, or skew

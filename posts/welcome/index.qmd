@@ -1,8 +1,0 @@
----
-title: "Welcome To My Blog"
-author: "Tristan O'Malley"
-date: "2022-12-21"
-categories: [news]
----
-
-This is the first post in a Quarto blog. Welcome!

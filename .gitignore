@@ -131,3 +131,4 @@ dmypy.json
 # gh pages
 /.quarto/
 /_site/
+/_freeze/

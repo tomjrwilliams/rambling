@@ -1,0 +1,55 @@
+---
+title: "Curves"
+author: "Tom Williams"
+date: "2022-12-30"
+categories: []
+draft: false
+---
+Setup:
+```{python}
+#| code-fold: true
+#| code-summary: "Set module path"
+import os
+import sys
+sys.path.append(os.environ["MODULE"])
+```
+```{python}
+#| code-fold: true
+#| code-summary: "Define render code"
+from pygments import highlight
+from pygments.lexers import PythonLexer
+from pygments.lexers import XmlLexer
+from pygments.formatters import HtmlFormatter
+import IPython
+
+def render_code(code):
+    html = highlight(code, PythonLexer(), HtmlFormatter())
+    formatter = HtmlFormatter()
+    IPython.display.display(IPython.core.display.HTML(
+        '<style type="text/css">{}</style>{}'.format(
+            formatter.get_style_defs('.highlight'),
+            html
+        )
+    ))
+```
+Imports:
+```{python}
+import inspect
+
+from src import transforms
+```
+# Curves
+
+This is a reference page of different curves, so that I don't have to keep looking them up.
+
+## Category
+
+### Curve
+
+```{python}
+render_code(inspect.getsource(transforms.sigmoid))
+```
+
+Graph, explanation, code
+
+...
