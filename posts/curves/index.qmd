@@ -5,6 +5,9 @@ date: "2022-12-30"
 categories: []
 draft: false
 ---
+
+This is a reference page of different curves, so that I don't have to keep looking them up.
+
 Setup:
 ```{python}
 #| code-fold: true
@@ -15,14 +18,16 @@ sys.path.append(os.environ["MODULE"])
 ```
 ```{python}
 #| code-fold: true
-#| code-summary: "Define render code"
+#| code-summary: "Define render source"
+import inspect
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.lexers import XmlLexer
 from pygments.formatters import HtmlFormatter
 import IPython
 
-def render_code(code):
+def render_source(f):
+    code = inspect.getsource(f)
     html = highlight(code, PythonLexer(), HtmlFormatter())
     formatter = HtmlFormatter()
     IPython.display.display(IPython.core.display.HTML(
@@ -34,20 +39,16 @@ def render_code(code):
 ```
 Imports:
 ```{python}
-import inspect
 
 from src import transforms
 ```
-# Curves
-
-This is a reference page of different curves, so that I don't have to keep looking them up.
 
 ## Category
 
 ### Curve
 
 ```{python}
-render_code(inspect.getsource(transforms.sigmoid))
+render_source(transforms.sigmoid)
 ```
 
 Graph, explanation, code
