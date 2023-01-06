@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Tom Williams">
+<meta name="dcterms.date" content="2022-12-30">
 
-<title>rambling</title>
+<title>rambling - Bayesian</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,24 +25,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -60,49 +60,19 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg navbar-dark ">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">rambling</span>
     </a>
   </div>
@@ -112,7 +82,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html">
+    <a class="nav-link" href="../../about.html">
  <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
@@ -139,73 +109,108 @@ ul.task-list li input[type="checkbox"] {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">rambling</h1>
+    <div class="quarto-title column-body">
+      <h1 class="title">Bayesian</h1>
                       </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Tom Williams </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">December 30, 2022</p>
+      </div>
+    </div>
     
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(1)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
+<p>p(a|b) = p(b|a)p(a) / p(b)</p>
+<p>So, for instance, we can take the base rate of a transaction.</p>
+<p>Aiming for what, probability of being above the optimal price?</p>
+<p>Can’t be straight price and quantity, because what is p(price|quantity)?</p>
+<p>Are we really sampling on the market sizes.</p>
+<p>p(market | sample) = p(sample | market) p(market) / p(sample)</p>
+<p>ie. given an arrival rate, estimate the total market size, given the sample transactions (demand) per period.</p>
+<p>Then the question is, assume that pricing changes the total market size. How do we (iteratively? or single shot pick) the price, to maximise our expectation of market size?</p>
+<p>We’re then looking at the above, but conditioning on change in price.</p>
+<p>Versus change in price (and other changes?)</p>
+<p>Ie. p(change market | change price) = p (change price | change market) p (change market) / p (change price)</p>
+<p>Or, given level of price - the idea there being to normalise the sample information over other times the price has been at that level.</p>
+<p>Ie. p(market | sample, price) = p(sample, price | market) p(market) / p(sample, price)</p>
+<p>Where you can presumably then decompose out separate variables for eg. the transaction rate</p>
+<p>And for the market size</p>
+<p>As a function of price</p>
+<p>So you’re looking for the distribution change conditional on the data</p>
+<p>For how price relates to those two quantities - how likely is it the different sample counts observed were from rate changes, versus market size changes</p>
+<p>So which then depend on your priors for the rate distribution, and the market size distribution</p>
+<p>I suppose you could hold the market size constant and have a distribution within that population of rates</p>
+<p>That approaches but never reaches zero</p>
+<p>And the change is in that distribution, bringing more of the population into play</p>
+<p>I suppose one reason not to model like that</p>
+<p>Is market share effectively divides the market into binary, and then a rate parameter within that</p>
+<p>Where the rate might be shared across the population</p>
+<p>Though that still then has a fixed potential market, that just gets sub divided before the rate sample</p>
+<p>The rate part works at least where you can be within an order of magntidue for the population</p>
+<p>When wouldn’t you be?</p>
+<p>And where the population is potentially changing between orders of magnitude?</p>
+<p>Ie. the question is effectively one of within population stickiness</p>
+<p>Reduction by slowing vs churning out.</p>
+<p>Arguably keeping as rate makes the math simpler, distribution of rate</p>
+<p>But the discrete churn model is fairly simple to think about.</p>
+<p>I guess where the population does make sense is opening up new markets - eg. stores.</p>
+<p>Odds of existing customers just travelling to new store, versus genuinely new customers.</p>
+<section id="restart" class="level2">
+<h2 class="anchored" data-anchor-id="restart">Restart</h2>
+<p>A better way to model</p>
+<p>Is a distribution of budget available for good per period</p>
+<p>And then given market size (random variable?)</p>
+<p>We get a customers as number of samples over price</p>
+<p>So given price change</p>
+<p>Can estimate how many should hit</p>
+<p>Given delta</p>
+<p>Either we overestimated the market size in people</p>
+<p>Or we overestimated the density at that price point, shape of distribution</p>
+<p>I guess one key point on the rate</p>
+<p>Is that it implies price change should be at the rate of information received about it - ie. proportional to transaction rate</p>
+<p>Slower traded goods should be moved in price slower?</p>
+<p>And increasingly so as they slow down?</p>
+<p>I suppose is the key point with the above</p>
+<p>To point out how business cycles can happen just from a varying rate parameter</p>
+<p>As a function of other macro conditions</p>
+<p>Where purely random fluctuations in one variable can have correlated self reinforcing effects in others</p>
+<p>To create cycles from random initial divergences</p>
+<p>Ie. one way the above is interesting is if we assume cyclicality in the budget function</p>
+<p>That would immediate generate it in the transaction rate</p>
+<p>Or more generally not cyclicality but trending variability</p>
+<p>In which case the question is then the likelihood of change in distribution from that</p>
+<p>Versus random sampling divergence</p>
+<p>Assuming we hold the population constant</p>
 
 
+</section>
 
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="" data-listing-date-sort="1672358400000" data-listing-file-modified-sort="1673008120136" data-listing-reading-time-sort="1.205">
-<div class="body">
-<a href="./posts/simple_model/index.html">
-<h3 class="no-anchor listing-title">
-Simple Model
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-
-</div>
-<a href="./posts/simple_model/index.html">
-<div class="listing-description">
-Intro
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/simple_model/index.html">
-<div class="listing-date">
-Dec 30, 2022
-</div>
-<div class="listing-author">
-Tom Williams
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

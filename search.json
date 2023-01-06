@@ -11,20 +11,27 @@
     "href": "index.html",
     "title": "rambling",
     "section": "",
-    "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nDec 24, 2022\n\n\nHarlow Malloc\n\n\n\n\n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nDec 21, 2022\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+    "text": "Simple Model\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDec 30, 2022\n\n\nTom Williams\n\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
+    "objectID": "posts/simple_model/index.html",
+    "href": "posts/simple_model/index.html",
+    "title": "Simple Model",
     "section": "",
-    "text": "This is a post with executable code."
+    "text": "Intro"
   },
   {
-    "objectID": "posts/welcome/index.html",
-    "href": "posts/welcome/index.html",
-    "title": "Welcome To My Blog",
-    "section": "",
-    "text": "This is the first post in a Quarto blog. Welcome!"
+    "objectID": "posts/simple_model/index.html#model",
+    "href": "posts/simple_model/index.html#model",
+    "title": "Simple Model",
+    "section": "Model",
+    "text": "Model\nFirst we have a demand curve, market size as a function of price:\nFor now, downward sloping with price, with a max at …, and min bound at zero.\n\ndef demand_curve(price):\n    return\n\n## graph of samples for different price\n\nGiven this, we can then observe a sample demand for a given period, given a price:\n\ndef demand_sample(price):\n    q = demand_curve(price)\n    return\n\n## graph of samples for different price\n## could also be grid, for different noise\n\nThen, given a cost per unit curve with quantity:\nAssume high at low quantity (fixed costs), optimum in middle, then gets more expensive.\n\ndef supply_curve(quantity):\n    return\n\n## graph of price for different quantities\n\nWhich we also observe under noise:\n\ndef cost_sample(quantity):\n    return\n\n## graph of price for different quantities\n\nWe can then plot the profit for a given price:\n\ndef profit_sample(price):\n    return\n\n## graph of profit, with price -> demand -> cost per unit\n\nWe can then optimise the profit, for a given set of params:\n\ndef optimal_price(price):\n    return\n\n## graph of optimal price for distribution of other params\n## possibly a grid if two possible params\n\nThe point of using stochastic gradient descent is that later the models won’t be analytically solvable."
+  },
+  {
+    "objectID": "posts/simple_model/index.html#variations",
+    "href": "posts/simple_model/index.html#variations",
+    "title": "Simple Model",
+    "section": "Variations",
+    "text": "Variations\nWith this, we can then see how it changes under different assumptions of the parametric form.\nEg. gaussian demand with asymmetric noise, or particularly skew\nIf we make the demand binomial, say - with average at the demand curve point\nCost sample asymmetric noise, or skew"
   }
 ]
