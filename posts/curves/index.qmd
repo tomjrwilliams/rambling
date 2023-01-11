@@ -16,31 +16,10 @@ import os
 import sys
 sys.path.append(os.environ["MODULE"])
 ```
-```{python}
-#| code-fold: true
-#| code-summary: "Define render source"
-import inspect
-from pygments import highlight
-from pygments.lexers import PythonLexer
-from pygments.lexers import XmlLexer
-from pygments.formatters import HtmlFormatter
-import IPython
-
-def render_source(f):
-    code = inspect.getsource(f)
-    html = highlight(code, PythonLexer(), HtmlFormatter())
-    formatter = HtmlFormatter()
-    IPython.display.display(IPython.core.display.HTML(
-        '<style type="text/css">{}</style>{}'.format(
-            formatter.get_style_defs('.highlight'),
-            html
-        )
-    ))
-```
 Imports:
 ```{python}
-
-from src import transforms
+import src.inspect
+import src.transforms
 ```
 
 ## Category
@@ -48,7 +27,7 @@ from src import transforms
 ### Curve
 
 ```{python}
-render_source(transforms.sigmoid)
+src.inspect.render_source(src.transforms.sigmoid)
 ```
 
 Graph, explanation, code

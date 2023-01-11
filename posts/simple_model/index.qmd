@@ -1,12 +1,26 @@
 ---
-title: "Simple Model"
+title: "Naive supply and demand"
 author: "Tom Williams"
 date: "2022-12-30"
 categories: []
-draft: false
+draft: true
 ---
 
-Intro
+This is a naive first supply and demand model.
+
+Setup:
+```{python}
+#| code-fold: true
+#| code-summary: "Set module path"
+import os
+import sys
+sys.path.append(os.environ["MODULE"])
+```
+Imports:
+```{python}
+import src.inspect
+import src.transforms
+```
 
 ## Model
 

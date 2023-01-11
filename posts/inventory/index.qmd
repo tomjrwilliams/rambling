@@ -1,7 +1,0 @@
----
-title: "Inventory"
-author: "Tom Williams"
-date: "2022-12-30"
-categories: []
-draft: true
----
