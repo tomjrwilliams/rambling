@@ -11,27 +11,48 @@
     "href": "index.html",
     "title": "rambling",
     "section": "",
-    "text": "Simple Model\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDec 30, 2022\n\n\nTom Williams\n\n\n\n\n\n\nNo matching items"
+    "text": "Time & Elasticity\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nJan 15, 2023\n\n\nTom Williams\n\n\n\n\n\n\n\n\nInventory: naive first model\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nJan 8, 2023\n\n\nTom Williams\n\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "posts/simple_model/index.html",
-    "href": "posts/simple_model/index.html",
-    "title": "Simple Model",
+    "objectID": "posts/inventory-level-under-holding-costs/index.html",
+    "href": "posts/inventory-level-under-holding-costs/index.html",
+    "title": "Inventory: naive first model",
     "section": "",
-    "text": "Intro"
+    "text": "This is a first naive inventory management model.\nHere, given distributions of holding cost, unit profit, and customer demand, we find the optimal level to reset our inventory to each period.\nSetup:\n\n\nSet module path\nimport os\nimport sys\nsys.path.append(os.environ[\"MODULE\"])\n\n\nImports:\n\nimport torch\n\nimport utils\nimport src.inspect\nimport src.graphs\n\nWe’ll start with simplest model possible:\n\nHolding costs: constant w.r.t. quantity\nUnit profits: constant w.r.t. quantity\nDemand: gaussian.\n\n\nsrc.inspect.render_source(utils.holding_cost_constant)\n\ndef holding_cost_constant(v):\n    def f(q):\n        return v * q\n    return f\n\n\n\n\nsrc.inspect.render_source(utils.profit_constant)\n\ndef profit_constant(v):\n    def f(q):\n        return v * q\n    return f\n\n\n\n\nsrc.inspect.render_source(utils.demand_gaussian)\n\ndef demand_gaussian(mu, sigma):\n    dist = torch.distributions.Normal(mu, sigma)\n    return dist.sample\n\n\n\nAnd a function to step forward our model state through one step:\n\nsrc.inspect.render_source(utils.step_model)\n\ndef step_model(\n    f_holding_cost,\n    f_profit,\n    f_demand,\n    inventory,\n):\n    holding_cost = f_holding_cost(inventory)\n    demand = f_demand().clamp(min = 0)\n    shortfall = (demand - inventory).clamp(min=0)\n    sales = demand - shortfall\n    profit = f_profit(sales) - holding_cost\n    return dict(\n        inventory=inventory,\n        holding_cost=holding_cost,\n        demand=demand,\n        shortfall=shortfall,\n        sales=sales,\n        profit=profit,\n    )\n\n\n\nWe can then define a simple gradient descent fitting procedure for the profit maximising optimal inventory level:\n\nsrc.inspect.render_source(utils.fit_optimal_inventory)\n\ndef fit_optimal_inventory(\n    f_holding_cost,\n    f_profit,\n    f_demand,\n):\n    inventory_optimal = torch.nn.Parameter(\n        torch.Tensor([1.]), requires_grad = True\n    )\n\n    def f_converge(losses, *params, n_samples = 100):\n        if len(losses) < n_samples:\n            return False\n        rng = (numpy.max(losses[-n_samples:]) - numpy.min(losses[-n_samples:]))\n        mu = abs(numpy.mean(losses[-n_samples:]))\n        return (rng / mu) < 0.001\n\n    def f_loss(inventory):\n        state = step_model(\n            f_holding_cost,\n            f_profit,\n            f_demand,\n            inventory,\n        )\n        return -1 * state[\"profit\"]\n\n    return src.optim.fit_parameters(\n        {\n            \"inventory_optimal\": inventory_optimal,\n        },\n        f_loss,\n        epochs = 10,\n        iters = 100,\n        f_converge = f_converge,\n    )\n\n\n\nWhich, given some parameters:\n\nHOLDING_COST = torch.Tensor([.1])\nPROFIT = torch.Tensor([.3])\nDEMAND_MU = torch.Tensor([3.])\nDEMAND_SD = torch.Tensor([.5])\n\nWe can run as so:\n\nlosses, params = utils.fit_optimal_inventory(\n    utils.holding_cost_constant(HOLDING_COST),\n    utils.profit_constant(PROFIT),\n    utils.demand_gaussian(\n        DEMAND_MU,\n        DEMAND_SD,\n    ),\n)\nsrc.graphs.render_graphs([\n    dict(\n        f=src.graphs.line_graph,\n        args = (\n            list(range(len(losses))),\n            losses,\n        ),\n        kwargs = dict(label = \"loss\", hlines=[0]),\n\n    ),\n])\nprint(\"Optimal inventory:\", params[\"inventory_optimal\"])\n\n  0%|          | 0/1000 [00:00<?, ?it/s]\n\n\n100%|█████████▉| 999/1000 [00:00<?, ?it/s, iter=999, loss=-.458]\n\n\nOptimal inventory: Parameter containing:\ntensor([3.1656], requires_grad=True)\n\n\n\n\n\n\n\n\nTo better understand what’s going on here, we can first collect a bunch of state samples at the optimal inventory level:\n\nsamples = [\n    utils.step_model(\n        utils.holding_cost_constant(HOLDING_COST),\n        utils.profit_constant(PROFIT),\n        utils.demand_gaussian(\n            DEMAND_MU,\n            DEMAND_SD,\n        ),\n        params[\"inventory_optimal\"],\n    ) for i in range(300)\n]\n\nAnd then plot them:\n\nsrc.inspect.render_source(utils.f_sample_graph)\n\ndef f_sample_graph(samples):\n\n    inventory = samples[0][\"inventory\"].item()\n    kws = {\n        \"demand\": dict(hlines=[0, inventory]),\n        \"shortfall\": dict(hlines=[0]),\n        \"sales\": dict(hlines=[0, inventory]),\n        \"profit\": dict(hlines=[0]),\n    }\n\n    def sample_graph(k, f_filter):\n        filtered_samples = [s for s in samples if f_filter(s)]\n        return dict(\n            f=src.graphs.scatter_graph,\n            args = (\n                list(range(len(filtered_samples))),\n                [s[k].item() for s in filtered_samples],\n            ),\n            kwargs = dict(label = k, s= 0.3, **kws[k]),\n        )\n\n    return sample_graph\n\n\n\nAs so:\n\nsample_graph = utils.f_sample_graph(samples)\n\nsrc.graphs.render_graphs([\n    [\n        sample_graph(\"demand\", lambda s: True),\n    ],\n    [\n        sample_graph(\"sales\", lambda s: True),\n        sample_graph(\"shortfall\", lambda s: True),\n    ],\n])\n\n\n\n\nAs one can see, … max sales at inventory.\nWe can also plot out the profit made when inventory covers customer demand, versus when there is an inventory short fall:\n\nsrc.graphs.render_graphs([\n    [\n        sample_graph(\"profit\", lambda s: s[\"shortfall\"].item() == 0),\n        sample_graph(\"profit\", lambda s: s[\"shortfall\"].item() > 0),\n    ],\n])\n\n\n\n\nAs one can see, …\nHowever, this only shows part of the picture.\nTo understand why this is the optimal inventory level, we also need to plot out the missed profit opportunities, resulting from an inventory shortfall leading to unsatisfied customer demand:\n… Insert graph\n… Graphs of various density functions\nTODO:\n\nGiven a gaussian cdf\nThe optimal level is where\n\nthe probability weighted profit when no shortfall\nplus holding costs\n==\nthe probability weighted missed profit from shortfall\nplus holding\n\nCan rearrange in terms of ratio of cdf to ratio of profit vs holding?\nPlot the various relationships\nThen sample empirically to verify"
   },
   {
-    "objectID": "posts/simple_model/index.html#model",
-    "href": "posts/simple_model/index.html#model",
-    "title": "Simple Model",
-    "section": "Model",
-    "text": "Model\nFirst we have a demand curve, market size as a function of price:\nFor now, downward sloping with price, with a max at …, and min bound at zero.\n\ndef demand_curve(price):\n    return\n\n## graph of samples for different price\n\nGiven this, we can then observe a sample demand for a given period, given a price:\n\ndef demand_sample(price):\n    q = demand_curve(price)\n    return\n\n## graph of samples for different price\n## could also be grid, for different noise\n\nThen, given a cost per unit curve with quantity:\nAssume high at low quantity (fixed costs), optimum in middle, then gets more expensive.\n\ndef supply_curve(quantity):\n    return\n\n## graph of price for different quantities\n\nWhich we also observe under noise:\n\ndef cost_sample(quantity):\n    return\n\n## graph of price for different quantities\n\nWe can then plot the profit for a given price:\n\ndef profit_sample(price):\n    return\n\n## graph of profit, with price -> demand -> cost per unit\n\nWe can then optimise the profit, for a given set of params:\n\ndef optimal_price(price):\n    return\n\n## graph of optimal price for distribution of other params\n## possibly a grid if two possible params\n\nThe point of using stochastic gradient descent is that later the models won’t be analytically solvable."
+    "objectID": "posts/time-elasticity/index.html",
+    "href": "posts/time-elasticity/index.html",
+    "title": "Time & Elasticity",
+    "section": "",
+    "text": "This post is a collection of thoughts on the importance of time when considering price elasticities."
   },
   {
-    "objectID": "posts/simple_model/index.html#variations",
-    "href": "posts/simple_model/index.html#variations",
-    "title": "Simple Model",
-    "section": "Variations",
-    "text": "Variations\nWith this, we can then see how it changes under different assumptions of the parametric form.\nEg. gaussian demand with asymmetric noise, or particularly skew\nIf we make the demand binomial, say - with average at the demand curve point\nCost sample asymmetric noise, or skew"
+    "objectID": "posts/time-elasticity/index.html#econ-101",
+    "href": "posts/time-elasticity/index.html#econ-101",
+    "title": "Time & Elasticity",
+    "section": "Econ 101",
+    "text": "Econ 101\nThe more elastic the supply or demand for a good, the more the variable responds to a given change in price.\nFor instance, one would assume that the supply of electricity from a wind farm is probably pretty inelastic w.r.t. price: a change in power prices is unlikely to have much bearing on wind speeds (and thus electricity generation), whilst the marginal cost of power generation is probably close to zero (so additional supply is all incremental profit).\nIn contrast, the demand for electricity from a smart-meter equipped home is probably pretty elastic, by design: the whole point of such a system is to dynamically adjust usage during the day in response to changes in price."
+  },
+  {
+    "objectID": "posts/time-elasticity/index.html#elasticity-and-volatility",
+    "href": "posts/time-elasticity/index.html#elasticity-and-volatility",
+    "title": "Time & Elasticity",
+    "section": "Elasticity and volatility",
+    "text": "Elasticity and volatility\nIntuitively, given that total supply and demand (more or less) have to balance across the grid, in the presense of volatility, one would assume that inelasticity in one part of the system has to be balanced out by elasticity elsewhere.\nFor instance, let’s assume we introduce a new wind-farm electricity supplier to the grid. On a windy day, we’re going to have a bunch of extra supply, which will have to be balanced out by either a supply decrease or a demand increase elsewhere (eg. gas plants turning off, fridges turning on).\nThe more variable our wind-farm, the greater the elastic capacity required elsewhere for the grid to balance. More generally: as we increase the volatility of the inelastic components of supply or demand, we have to reduce their overall share."
+  },
+  {
+    "objectID": "posts/time-elasticity/index.html#inventory",
+    "href": "posts/time-elasticity/index.html#inventory",
+    "title": "Time & Elasticity",
+    "section": "Inventory",
+    "text": "Inventory\nGoods markets generally don’t need to balance with quite the same brutality as the power grid, given that suppliers can accumulate, run down, and even write off their inventories.\nHaving said that, we need not lose any generality from the above: we can simply model inventory accumulation and write offs as demand components, and inventory run down as a component of supply.\nGiven this, we can then make the argument that - all else being equal - if we increase the volatility of demand, we have to increase our inventory capacity (see here for a demonstration in python)."
+  },
+  {
+    "objectID": "posts/time-elasticity/index.html#todo",
+    "href": "posts/time-elasticity/index.html#todo",
+    "title": "Time & Elasticity",
+    "section": "TODO",
+    "text": "TODO\n\nSupply and demand = f(capacity)\nCapacity = f(time)\n-> Change supply or demand = f(time)"
   }
 ]

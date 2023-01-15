@@ -2,7 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/simple_model/index.html"
+      "/posts/time-elasticity/index.html",
+      "/posts/inventory-level-under-holding-costs/index.html"
     ]
   }
 ]
