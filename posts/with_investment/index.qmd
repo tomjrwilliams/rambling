@@ -7,16 +7,6 @@ draft: true
 ---
 
 
-Starting point for this is probably just the model with
-
-Holding costs, profit per, demand function
-
-Pick how much to hold, balancing holding cost vs missed profit if demand exceeds
-
-
-Then the next post is noisy sample of extra inventory, so we have to track from last period rather than just resetting to level each period
-
-Optimal level to pick in flow, assuming noisy sample, holding costs, and profit per
 
 
 Can have another post where we also assume that there's a negative churn to not fulfilling order
