@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.242">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Tom Williams">
+<meta name="dcterms.date" content="2023-03-04">
+
+<title>rambling - Supply: f(capacity) not f(price)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">rambling</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/tomjrwilliams"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://linkedin.com/in/tomjrwilliams/"><i class="bi bi-linkedin" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/tjrwilliams"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Supply: f(capacity) not f(price)</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Tom Williams </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">March 4, 2023</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="intro" class="level2">
+<h2 class="anchored" data-anchor-id="intro">0: Intro</h2>
+<section id="current" class="level3">
+<h3 class="anchored" data-anchor-id="current">0.0: Current</h3>
+<p>Supply is a function of price.</p>
+<p>Take intersection of supply and demand curve in price space, to find supply == demand.</p>
+<p>Under relevant efficient market assumptions (non monopolistic, etc.).</p>
+<p>Assuming utility curves, can then derive various social optimality results.</p>
+</section>
+<section id="proposed" class="level3">
+<h3 class="anchored" data-anchor-id="proposed">0.1: Proposed</h3>
+<p>Supply is - first and foremost - a function of cumulative investment in productive capacity.</p>
+<p>Productive investment requires cash, raw materials, and time.</p>
+<p>Because investment is expensive, it is only under-taken when expected to generate a positive return over its life.</p>
+<p>Price is thus only relevant to supply, in so far as it changes the expected RoI of incremental new capacity investment / maintenance.</p>
+</section>
+<section id="examples" class="level3">
+<h3 class="anchored" data-anchor-id="examples">0.2: Examples</h3>
+<p>Semis</p>
+<p>Oil</p>
+<p>Pharma</p>
+<p>Retail (distribution)</p>
+<p>Retail (brands / marketing)</p>
+<p>Labor</p>
+</section>
+</section>
+<section id="objections" class="level2">
+<h2 class="anchored" data-anchor-id="objections">1: Objections</h2>
+<section id="supply-fprice-is-true" class="level3">
+<h3 class="anchored" data-anchor-id="supply-fprice-is-true">1.0: Supply = f(price) is true</h3>
+<p>If price increases, so does supply available for sale.</p>
+<p>But, examples:</p>
+<ul>
+<li><p>Covid, semis</p></li>
+<li><p>Ukraine, oil and gas (particularly liquification capacity)</p></li>
+</ul>
+<p>Clearly, changing supply beyond relatively small local fluctations (effectively inventory on hand in most cases), requires time and cost heavy investment.</p>
+</section>
+<section id="supply-fprice-is-true-except-in-special-cases" class="level3">
+<h3 class="anchored" data-anchor-id="supply-fprice-is-true-except-in-special-cases">1.1: Supply = f(price) is true except in special cases</h3>
+<p>Are the above special cases?</p>
+<p>Examples:</p>
+<ul>
+<li><p>Pharma</p></li>
+<li><p>Retail (distribution)</p></li>
+<li><p>Retail (marketing)</p></li>
+<li><p>Labor</p></li>
+</ul>
+<p>Clearly, significant time and cash (and materials) is expended ahead of time, to support future supply capability.</p>
+<p>Rather, special cases just expose the underlying process, that is otherwise behind the scenes when running smoothly.</p>
+</section>
+<section id="supply-fprice-is-false-but-useful" class="level3">
+<h3 class="anchored" data-anchor-id="supply-fprice-is-false-but-useful">1.2: Supply = f(price) is false but useful</h3>
+<p>Common refrain, Lucas, doesn’t have to be true if (practically?) useful.</p>
+<p>Argue this isn’t the case, highlighting particular cases where the f(price) analysis leads to either straight wrong, or at best empirically empty, results / analysis.</p>
+<section id="supply-is-fixed-in-the-short-term" class="level4">
+<h4 class="anchored" data-anchor-id="supply-is-fixed-in-the-short-term">1.2.0: Supply is fixed in the short term</h4>
+<p>As we saw with covid, there’s a time component to new investment.</p>
+<p>We could add a time index to our curve shifts.</p>
+<p>But really, it’s actually a surface vs investment over time, for future supply.</p>
+<p>At which point, it becomes obvious that price isn’t really playing a role at all: price determines which path we chose to take, but in the present, capacity is effectively already baked in.</p>
+</section>
+<section id="aside" class="level4">
+<h4 class="anchored" data-anchor-id="aside">Aside</h4>
+<p>Price is a much better predictor then of short term utilisation of the fixed capacity base.</p>
+<p>Where a low price will lead eventually to the capacity declining, as the under-used capacity is rolled up.</p>
+</section>
+<section id="price-is-only-relevant-to-the-extent-it-changes-investment-decisions" class="level4">
+<h4 class="anchored" data-anchor-id="price-is-only-relevant-to-the-extent-it-changes-investment-decisions">1.2.1: Price is only relevant to the extent it changes investment decisions</h4>
+<p>Given this, price is only relevant as a signal to the extent it changes those cumulative decisions.</p>
+<p>As such, policy based on an arbitrary supply curve isn’t necessarily going to help.</p>
+<p>Eg. …</p>
+<p>Unless, it clearly makes the investment attractive - for instance, that we know the price will be high in the future (demand will still be there).</p>
+</section>
+<section id="investment-goods-complimentary-to-capacity" class="level4">
+<h4 class="anchored" data-anchor-id="investment-goods-complimentary-to-capacity">1.2.2: Investment goods / complimentary to capacity</h4>
+<p>Also makes clear that investment is the constraint, and that can be effected by eg. material shortages.</p>
+<p>IP shortages, skilled labour shortages (ie. complimentary goods).</p>
+<p>Arbitrarily shifting the supply curve just because price has risen is to assume all of these away - clearly erroneously.</p>
+</section>
+<section id="funding-limits" class="level4">
+<h4 class="anchored" data-anchor-id="funding-limits">1.2.3: Funding limits</h4>
+<p>Clearly, investment is often loan backed, if not from free cash flow.</p>
+<p>Thus, increasing the cost of loans will reduce investment and hence future capacity, all else equal.</p>
+<p>Employ america post on volker leading to capacity fall.</p>
+</section>
+<section id="aside-1" class="level4">
+<h4 class="anchored" data-anchor-id="aside-1">Aside</h4>
+<p>Making it clear supply changes are function of investment in capacity, and capacity is often load backed.</p>
+<p>Implies that demand for paper is a function of demand for new investment.</p>
+<p>And hence that borrowing will only be if perceived attractive investment opportunities.</p>
+</section>
+<section id="taxes-and-supply-side-changes" class="level4">
+<h4 class="anchored" data-anchor-id="taxes-and-supply-side-changes">1.2.4: Taxes and ‘supply side’ changes</h4>
+<p>Clearly if they don’t change the RoI on the capacity itself, they’ll just lead to return of capital to shareholders.</p>
+<p>Ie. if you weren’t investing before, they won’t make it suddenly competitive.</p>
+<p>What you actually need is long term demand for the new unit capacity.</p>
+<p>And or expected pricing power (sort of same thing).</p>
+</section>
+</section>
+<section id="pros" class="level3">
+<h3 class="anchored" data-anchor-id="pros">2: Pros</h3>
+<p>Supply is dynamic - changes over time, with returns to scale, new investment, mothballing of old capacity.</p>
+<p>Clearly, capacity is also the determining feature of a significant part of the rest of the system, because it’s a short term constant (fixed).</p>
+<p>We should then be modelling it explicitly, so we can answer interesting questions.</p>
+<section id="what-shift-will-actually-happen." class="level4">
+<h4 class="anchored" data-anchor-id="what-shift-will-actually-happen.">2.0: What shift will actually happen.</h4>
+<p>Rather than arbitrary lines on page, which clearly may or may not realise, we can predict whether supply will change.</p>
+<p>The shifts are what we should be trying to predict as economists: not taking them arbitrarily as given.</p>
+</section>
+<section id="how-long-will-it-take" class="level4">
+<h4 class="anchored" data-anchor-id="how-long-will-it-take">2.1: How long will it take</h4>
+<p>More specifically, we can specify and model and measure how long a particular capacity change will take.</p>
+<p>We can therefore consider what the price impact might be in the short term, were there to be a demand (or supply) shock, based on long how new capacity takes to come online (and cost).</p>
+</section>
+<section id="returns-to-scale" class="level4">
+<h4 class="anchored" data-anchor-id="returns-to-scale">2.2: Returns to scale</h4>
+<p>We can model which industries have returns to scale in what ways, as that’s a primary determinant of the investment decision.</p>
+<p>Instead of just being assumed linear (or even worse, sub-linear).</p>
+</section>
+<section id="industrial-configuration" class="level4">
+<h4 class="anchored" data-anchor-id="industrial-configuration">2.3: Industrial configuration</h4>
+<p>How it will change over time is a function of the relevant industries capacity investment decisions over time, and how these end up inter-relating with demand.</p>
+</section>
+</section>
+</section>
+<section id="conclusion-supply-is-dynamic" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion-supply-is-dynamic">3: Conclusion, supply is dynamic</h2>
+<p>Supply changes over time with investment in capacity.</p>
+<section id="tbc" class="level3">
+<h3 class="anchored" data-anchor-id="tbc">3.0: TBC</h3>
+<p>This is what we should be modelling: why and how the curve shifts (dimensions being time and spend on the capacity, vs future capacity given that spending path over time, not price of output), what curves arise in what industrial structures, how long and how expensive, how this leads to different industrial configurations, and so on.</p>
+<p>Not just taking it as given, and assuming away everything that we should actually be working to determine.</p>
+<p>Price is only relevant to the extent it changes this decision-making, and should be treated in both policy and analysis accordingly.</p>
+</section>
+<section id="section" class="level3">
+<h3 class="anchored" data-anchor-id="section">3.1:</h3>
+<p>Given the investment-time to future capacity surface.</p>
+<p>Can then look at a return on investment surface, to then get out actual investment per period.</p>
+<p>Which then determines actual capacity.</p>
+<p>Whether this ends up being utilised, is then a question of demand - order arrival.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

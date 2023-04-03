@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Tom Williams">
+<meta name="dcterms.date" content="2023-01-15">
 
-<title>rambling</title>
+<title>rambling - Time &amp; Elasticity</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,24 +25,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -60,49 +60,19 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="../../../styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg navbar-dark ">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../../index.html">
     <span class="navbar-title">rambling</span>
     </a>
   </div>
@@ -112,7 +82,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html">About</a>
+    <a class="nav-link" href="../../../about.html">About</a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/tomjrwilliams"><i class="bi bi-github" role="img">
@@ -138,162 +108,76 @@ ul.task-list li input[type="checkbox"] {
 <!-- content -->
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-page-left">
-      <h1 class="title">rambling</h1>
+    <div class="quarto-title column-body">
+      <h1 class="title">Time &amp; Elasticity</h1>
                       </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Tom Williams </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">January 15, 2023</p>
+      </div>
+    </div>
       
     </div>
     
   
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(4)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<main class="content quarto-banner-title-block" id="quarto-document-content">
 
 
 
 
+<p>This post is a collection of thoughts on the importance of time when considering price elasticities.</p>
+<section id="time-elasticity" class="level1">
+<h1>Time &amp; Elasticity</h1>
+<p>A price elasticity, often one of the first concepts introduced in a university economics programme, is the rate of change of either supply or demand for some good as one changes its price.</p>
+<section id="econ-101" class="level2">
+<h2 class="anchored" data-anchor-id="econ-101">Econ 101</h2>
+<p>The more elastic the supply or demand for a good, the more the variable responds to a given change in price.</p>
+<p>For instance, one would assume that the supply of electricity from a wind farm is probably pretty inelastic w.r.t. price: a change in power prices is unlikely to have much bearing on wind speeds (and thus electricity generation), whilst the marginal cost of power generation is probably close to zero (so additional supply is all incremental profit).</p>
+<p>In contrast, the demand for electricity from a smart-meter equipped home is probably pretty elastic, by design: the whole point of such a system is to dynamically adjust usage during the day in response to changes in price.</p>
+</section>
+<section id="elasticity-and-volatility" class="level2">
+<h2 class="anchored" data-anchor-id="elasticity-and-volatility">Elasticity and volatility</h2>
+<p>Intuitively, given that total supply and demand (more or less) have to balance across the grid, in the presense of volatility, one would assume that inelasticity in one part of the system has to be balanced out by elasticity elsewhere.</p>
+<p>For instance, let’s assume we introduce a new wind-farm electricity supplier to the grid. On a windy day, we’re going to have a bunch of extra supply, which will have to be balanced out by either a supply decrease or a demand increase elsewhere (eg. gas plants turning off, fridges turning on).</p>
+<p>The more variable our wind-farm, the greater the elastic capacity required elsewhere for the grid to balance. More generally: as we increase the volatility of the inelastic components of supply or demand, we have to reduce their overall share.</p>
+</section>
+<section id="inventory" class="level2">
+<h2 class="anchored" data-anchor-id="inventory">Inventory</h2>
+<p>Goods markets generally don’t need to balance with quite the same brutality as the power grid, given that suppliers can accumulate, run down, and even write off their inventories.</p>
+<p>Having said that, we need not lose any generality from the above: we can simply model inventory accumulation and write offs as demand components, and inventory run down as a component of supply.</p>
+<p>Given this, we can then make the argument that - all else being equal - if we increase the volatility of demand, we have to increase our inventory capacity (see <a href="../../../posts/drafts/inventory-level-under-holding-costs/index.html">here</a> for a demonstration in python).</p>
+</section>
+<section id="todo" class="level2">
+<h2 class="anchored" data-anchor-id="todo">TODO</h2>
+<ul>
+<li>Supply and demand = f(capacity)</li>
+<li>Capacity = f(time)</li>
+<li>-&gt; Change supply or demand = f(time)</li>
+</ul>
 
 
+</section>
+</section>
 
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="" data-listing-date-sort="1677888000000" data-listing-file-modified-sort="1680522400738" data-listing-reading-time-sort="0.11">
-<div class="body">
-<a href="./posts/demand-consumer/index.html">
-<h3 class="no-anchor listing-title">
-Demand (Corporate): f(capacity, demand) not f(price)
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-
-</div>
-<a href="./posts/demand-consumer/index.html">
-<div class="listing-description">
-Consumer demand as either like corporate.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/demand-consumer/index.html">
-<div class="listing-date">
-Mar 4, 2023
-</div>
-<div class="listing-author">
-Tom Williams
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="" data-listing-date-sort="1677888000000" data-listing-file-modified-sort="1680522466166" data-listing-reading-time-sort="0.42">
-<div class="body">
-<a href="./posts/demand-corporate/index.html">
-<h3 class="no-anchor listing-title">
-Demand (Corporate): f(capacity, demand) not f(price)
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-
-</div>
-<a href="./posts/demand-corporate/index.html">
-<div class="listing-description">
-Corporate demand even as a function of accumulated capacity (and downstram demand, and then profitability).
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/demand-corporate/index.html">
-<div class="listing-date">
-Mar 4, 2023
-</div>
-<div class="listing-author">
-Tom Williams
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="" data-listing-date-sort="1677888000000" data-listing-file-modified-sort="1680524106024" data-listing-reading-time-sort="1.095">
-<div class="body">
-<a href="./posts/mr-mc/index.html">
-<h3 class="no-anchor listing-title">
-Marginal Revenue = Marginal Cost
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-
-</div>
-<a href="./posts/mr-mc/index.html">
-<div class="listing-description">
-Price
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/mr-mc/index.html">
-<div class="listing-date">
-Mar 4, 2023
-</div>
-<div class="listing-author">
-Tom Williams
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="3" data-categories="" data-listing-date-sort="1677888000000" data-listing-file-modified-sort="1680524082376" data-listing-reading-time-sort="4.805">
-<div class="body">
-<a href="./posts/supply/index.html">
-<h3 class="no-anchor listing-title">
-Supply: f(capacity) not f(price)
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-
-</div>
-<a href="./posts/supply/index.html">
-<div class="listing-description">
-Supply is a function of price.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/supply/index.html">
-<div class="listing-date">
-Mar 4, 2023
-</div>
-<div class="listing-author">
-Tom Williams
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

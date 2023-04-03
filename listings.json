@@ -2,8 +2,10 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/time-elasticity/index.html",
-      "/posts/inventory-level-under-holding-costs/index.html"
+      "/posts/demand-consumer/index.html",
+      "/posts/demand-corporate/index.html",
+      "/posts/mr-mc/index.html",
+      "/posts/supply/index.html"
     ]
   }
 ]
