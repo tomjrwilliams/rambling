@@ -3,7 +3,7 @@ title: "Time & Elasticity"
 author: "Tom Williams"
 date: "2023-01-15"
 categories: []
-draft: false
+draft: true
 ---
 
 This post is a collection of thoughts on the importance of time when considering price elasticities.

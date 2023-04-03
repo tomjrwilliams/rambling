@@ -3,7 +3,7 @@ title: "Inventory: naive first model"
 author: "Tom Williams"
 date: "2023-01-08"
 categories: []
-draft: false
+draft: true
 ---
 
 This is a first naive inventory management model.
