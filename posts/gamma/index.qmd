@@ -1,0 +1,27 @@
+---
+title: "Box Muller"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Step by step intuition building via graphs
+
+Of gamma as sum of (including partial) exponential distributions.
+
+
+And the reverse transform sampling generation approach (formula).
+
+
+
+
+
+
+
+
+Chi squared is a special case, sum of k squared normal samples.
+ 
+Beta can be generated as ratio of x / x + y where each are independent gamma.
+
+Hitting time of wiener is inverse gamma distributed, special case.

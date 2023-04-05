@@ -5,3 +5,189 @@ date: "2023-03-04"
 categories: []
 draft: false
 ---
+
+## 0: Intro
+
+### 0.0: Current
+
+Supply is a function of price.
+
+Take intersection of supply and demand curve in price space, to find supply == demand.
+
+Under relevant efficient market assumptions (non monopolistic, etc.).
+
+Assuming utility curves, can then derive various social optimality results.
+
+### 0.1: Proposed
+
+Supply is - first and foremost - a function of cumulative investment in productive capacity.
+
+Productive investment requires cash, raw materials, and time.
+
+Because investment is expensive, it is only under-taken when expected to generate a positive return over its life.
+
+Price is thus only relevant to supply, in so far as it changes the expected RoI of incremental new capacity investment / maintenance.
+
+### 0.2: Examples
+
+Semis
+
+Oil
+
+Pharma
+
+Retail (distribution)
+
+Retail (brands / marketing)
+
+Labor
+
+## 1: Objections
+
+### 1.0: Supply = f(price) is true
+
+If price increases, so does supply available for sale.
+
+But, examples:
+
+- Covid, semis
+
+- Ukraine, oil and gas (particularly liquification capacity)
+
+Clearly, changing supply beyond relatively small local fluctations (effectively inventory on hand in most cases), requires time and cost heavy investment.
+
+### 1.1: Supply = f(price) is true except in special cases
+
+Are the above special cases?
+
+Examples:
+
+- Pharma
+
+- Retail (distribution)
+
+- Retail (marketing)
+
+- Labor
+
+Clearly, significant time and cash (and materials) is expended ahead of time, to support future supply capability.
+
+Rather, special cases just expose the underlying process, that is otherwise behind the scenes when running smoothly.
+
+### 1.2: Supply = f(price) is false but useful
+
+Common refrain, Lucas, doesn't have to be true if (practically?) useful.
+
+Argue this isn't the case, highlighting particular cases where the f(price) analysis leads to either straight wrong, or at best empirically empty, results / analysis.
+
+#### 1.2.0: Supply is fixed in the short term
+
+As we saw with covid, there's a time component to new investment.
+
+We could add a time index to our curve shifts.
+
+But really, it's actually a surface vs investment over time, for future supply.
+
+At which point, it becomes obvious that price isn't really playing a role at all: price determines which path we chose to take, but in the present, capacity is effectively already baked in.
+
+#### Aside
+
+Price is a much better predictor then of short term utilisation of the fixed capacity base.
+
+Where a low price will lead eventually to the capacity declining, as the under-used capacity is rolled up.
+
+#### 1.2.0 Continued: Price is only relevant to the extent it changes investment decisions
+
+Given this, price is only relevant as a signal to the extent it changes those cumulative decisions.
+
+As such, policy based on an arbitrary supply curve isn't necessarily going to help.
+
+Eg. ...
+
+Unless, it clearly makes the investment attractive - for instance, that we know the price will be high in the future (demand will still be there).
+
+#### 1.2.1: Investment goods / complimentary to capacity
+
+Also makes clear that investment is the constraint, and that can be effected by eg. material shortages.
+
+IP shortages, skilled labour shortages (ie. complimentary goods).
+
+Arbitrarily shifting the supply curve just because price has risen is to assume all of these away - clearly erroneously.
+
+#### 1.2.2: Funding limits
+
+Clearly, investment is often loan backed, if not from free cash flow.
+
+Thus, increasing the cost of loans will reduce investment and hence future capacity, all else equal.
+
+Employ america post on volker leading to capacity fall.
+
+#### Aside
+
+Making it clear supply changes are function of investment in capacity, and capacity is often load backed.
+
+Implies that demand for paper is a function of demand for new investment.
+
+And hence that borrowing will only be if perceived attractive investment opportunities.
+
+#### 1.2.3: Taxes and 'supply side' changes
+
+Clearly if they don't change the RoI on the capacity itself, they'll just lead to return of capital to shareholders.
+
+Ie. if you weren't investing before, they won't make it suddenly competitive.
+
+What you actually need is long term demand for the new unit capacity.
+
+And or expected pricing power (sort of same thing).
+
+### 2: Pros
+
+Supply is dynamic - changes over time, with returns to scale, new investment, mothballing of old capacity.
+
+Clearly, capacity is also the determining feature of a significant part of the rest of the system, because it's a short term constant (fixed).
+
+We should then be modelling it explicitly, so we can answer interesting questions.
+
+#### 2.0: What shift will actually happen.
+
+Rather than arbitrary lines on page, which clearly may or may not realise, we can predict whether supply will change.
+
+The shifts are what we should be trying to predict as economists: not taking them arbitrarily as given.
+
+#### 2.1: How long will it take
+
+More specifically, we can specify and model and measure how long a particular capacity change will take.
+
+We can therefore consider what the price impact might be in the short term, were there to be a demand (or supply) shock, based on long how new capacity takes to come online (and cost).
+
+#### 2.2: Returns to scale
+
+We can model which industries have returns to scale in what ways, as that's a primary determinant of the investment decision.
+
+Instead of just being assumed linear (or even worse, sub-linear).
+
+#### 2.3: Industrial configuration
+
+How it will change over time is a function of the relevant industries capacity investment decisions over time, and how these end up inter-relating with demand.
+
+## 3: Conclusion, supply is dynamic
+
+Supply changes over time with investment in capacity.
+
+### 3.0: TBC
+
+This is what we should be modelling: why and how the curve shifts (dimensions being time and spend on the capacity, vs future capacity given that spending path over time, not price of output), what curves arise in what industrial structures, how long and how expensive, how this leads to different industrial configurations, and so on.
+
+Not just taking it as given, and assuming away  everything that we should actually be working to determine.
+
+Price is only relevant to the extent it changes this decision-making, and should be treated in both policy and analysis accordingly.
+
+### 3.1: 
+
+Given the investment-time to future capacity surface.
+
+Can then look at a return on investment surface, to then get out actual investment per period.
+
+Which then determines actual capacity.
+
+Whether this ends up being utilised, is then a question of demand - order arrival.

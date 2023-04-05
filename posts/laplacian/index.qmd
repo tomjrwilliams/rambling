@@ -1,0 +1,19 @@
+---
+title: "Laplacian and asymmetric"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Step by step intuition building via graphs
+
+Of laplacian as delta of two exponentials.
+
+
+And the reverse transform sampling generation approach (formula).
+
+
+
+
+This being an interesting example of a fairly fat tailed, skew, distribution - eg. for return fitting.

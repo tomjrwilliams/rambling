@@ -1,0 +1,13 @@
+---
+title: "Exp Sampling"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Exponential generation as a sort of reverse logit.
+
+Take a number in unit interval and scale to a (positive) real number.
+
+https://en.wikipedia.org/wiki/Exponential_distribution#Random_variate_generation

@@ -1,0 +1,101 @@
+---
+title: "Default arrival"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Exponential distribution of default arrival times for CDS.
+
+Can then sum over the exponential curve to get a probability of under a given time.
+
+
+Next step is then drawing correlated exponential samples - how would one do that?
+
+
+Is there an interesting link between tranche pricing and implied defaults per attachment bucket.
+
+And gamma distribution - time until a certain number of defaults.
+
+
+
+Probability default = p(default)
+
+Particular time = t.
+
+
+
+Model targets:
+
+- Single name p(default | t_default <= t).
+
+    - Equivalently (?) distribution of time to first default (n=1)
+
+    - p(t | t_default == t)
+
+- Index, time to nth default. 
+
+- ie. p(default >= n | t_default_n <= t)
+
+    - Equivalently, distribution of number of defaults, by given time.
+
+    - p(default == n | t_default == t)
+
+And or replace eq with ge / le.
+
+
+
+Correlation essentially means, the extent to which we think one happening means another is more likely.
+
+Ie. given one, the rates of the others go up / down for the remaining time.
+
+Or, even, bayesian framework: were already higher.
+
+
+
+Ie. is it enough to say that we have a mean parameter of the exponential, for each name.
+
+That is a dot product of some factor path.
+
+And we back-fit from the default, that the factor path is high, and hence the probability of the other (correlated) names should also be high.
+
+
+
+So go from spread to the rate parameter.
+
+And as the spread changes, we therefore imply a factor path.
+
+Whilst fitting a covariance matrix (for correlation) of the factors feeding into that spread over time.
+
+
+
+Though we have a default curve, so clearly not just an exponential: could you fit as a sum of exponentials?
+
+With the same framework as the above, just predicting a vector of rates per name.
+
+
+Presumably less than the number of tenors for which we have data.
+
+
+
+Interesting also considering as modelling as gamma. Number of periods survived for, but where periods have a probabilistic length under the exponential distribution.
+
+So we fit the period length, and the number summed over.
+
+Period length could even be a shared parameter globally, and we effectively fit per name the expected periods survived for -> hence total time survived.
+
+Then sample a, given number of periods, time to get there, back out from that a probability of surviving to a given time?
+
+
+
+
+https://en.wikipedia.org/wiki/Weibull_distribution
+
+Weibull special case of generalised gamma
+
+Exponential has constant failure rate
+
+Changing parameter can interpolate between declining, eg. infant mortality, and increasing (eg. aging).
+
+Intersting idea to try and fit a curve over those parameters, as a way of fitting the cds probability surface.

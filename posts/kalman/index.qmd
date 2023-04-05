@@ -1,0 +1,15 @@
+---
+title: "Kalman"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Kalman filter intuition
+
+
+Graph the distributions of each of the update steps
+
+
+According to diferent assumptions.

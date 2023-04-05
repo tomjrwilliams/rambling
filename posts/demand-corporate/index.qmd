@@ -1,0 +1,23 @@
+---
+title: "Demand (Corporate): f(capacity, demand) not f(price)"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: false
+---
+
+Corporate demand even as a function of accumulated capacity (and downstram demand, and then profitability).
+
+Price only via profitability.
+
+#### Aside
+
+Demand should be modelled as a probabilistic (order) arrival process of time t, where the price is one element of a state vector indexed on t.
+
+Highlights that we only have local, historic, knowledge of demand response.
+
+#### Aside
+
+Which in turn makes clear a market need not clear for long periods of time.
+
+Can have many more orders than fills, without capacity necessarily changing (or demand being able to change).

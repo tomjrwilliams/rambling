@@ -1,0 +1,19 @@
+---
+title: "Box Muller"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+
+Transform from a pair of unit interval uniform, into a pair of uniform.
+
+Treating as complex numbers.
+
+
+
+Plot the process of generating step by step to build the intuition.
+
+https://en.wikipedia.org/wiki/File:Inverse_transform_sampling.png
