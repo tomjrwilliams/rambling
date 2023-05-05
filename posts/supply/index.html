@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.1.242">
+<meta name="generator" content="quarto-1.2.253">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -82,22 +82,23 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../../about.html">About</a>
+    <a class="nav-link" href="../../about.html">
+ <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/tomjrwilliams"><i class="bi bi-github" role="img">
 </i> 
- </a>
+ <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://linkedin.com/in/tomjrwilliams/"><i class="bi bi-linkedin" role="img">
 </i> 
- </a>
+ <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://twitter.com/tjrwilliams"><i class="bi bi-twitter" role="img">
 </i> 
- </a>
+ <span class="menu-text"></span></a>
   </li>  
 </ul>
               <div id="quarto-search" class="" title="Search"></div>
@@ -129,6 +130,7 @@ ul.task-list li input[type="checkbox"] {
         <p class="date">March 4, 2023</p>
       </div>
     </div>
+    
       
     </div>
     
@@ -145,10 +147,11 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="intro" class="level2">
 <h2 class="anchored" data-anchor-id="intro">0: Intro</h2>
+<p>In this, …</p>
 <section id="current" class="level3">
 <h3 class="anchored" data-anchor-id="current">0.0: Current</h3>
 <p>Supply is a function of price.</p>
-<p>Take intersection of supply and demand curve in price space, to find supply == demand.</p>
+<p>Take intersection of supply and demand curve in price space, to find supply == demand at price == p.</p>
 <p>Under relevant efficient market assumptions (non monopolistic, etc.).</p>
 <p>Assuming utility curves, can then derive various social optimality results.</p>
 </section>
@@ -156,34 +159,48 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="proposed">0.1: Proposed</h3>
 <p>Supply is - first and foremost - a function of cumulative investment in productive capacity.</p>
 <p>Productive investment requires cash, raw materials, and time.</p>
+<p>As such, supply is effectively fixed in the short term - beyond the flexibility provided by onhand inventory.</p>
 <p>Because investment is expensive, it is only under-taken when expected to generate a positive return over its life.</p>
-<p>Price is thus only relevant to supply, in so far as it changes the expected RoI of incremental new capacity investment / maintenance.</p>
+<p>Price is thus still relevant, but only in so far as it changes the expected RoI of incremental new capacity investment / maintenance.</p>
 </section>
-<section id="examples" class="level3">
-<h3 class="anchored" data-anchor-id="examples">0.2: Examples</h3>
-<p>Semis</p>
-<p>Oil</p>
-<p>Pharma</p>
-<p>Retail (distribution)</p>
-<p>Retail (brands / marketing)</p>
-<p>Labor</p>
+<section id="methodology" class="level3">
+<h3 class="anchored" data-anchor-id="methodology">0.2: Methodology</h3>
+<p>Show that it’s either redundant, with the interesting parts of the system not modellable (without resort to a capacity model) or just outright false.</p>
+<p>Claims:</p>
+<ul>
+<li><p>Supply is, aside from inventory management, short term fixed, and thus not directly a function of price.</p></li>
+<li><p>Supply is, instead, a function of cumulative investment to that point: which at point t is effectively fixed.</p></li>
+</ul>
 </section>
 </section>
-<section id="objections" class="level2">
-<h2 class="anchored" data-anchor-id="objections">1: Objections</h2>
+<section id="evidence" class="level2">
+<h2 class="anchored" data-anchor-id="evidence">1: Evidence</h2>
+<p>Start with assuming the strong form, supply = f(price), show that logical / intuitions from this premise don’t hold, and then progressively weaken the premise until we reach claim 2, supply = f(investment).</p>
 <section id="supply-fprice-is-true" class="level3">
 <h3 class="anchored" data-anchor-id="supply-fprice-is-true">1.0: Supply = f(price) is true</h3>
 <p>If price increases, so does supply available for sale.</p>
 <p>But, examples:</p>
 <ul>
 <li><p>Covid, semis</p></li>
-<li><p>Ukraine, oil and gas (particularly liquification capacity)</p></li>
+<li><p>Ukraine, oil and gas (particularly liquification capacity).</p></li>
 </ul>
-<p>Clearly, changing supply beyond relatively small local fluctations (effectively inventory on hand in most cases), requires time and cost heavy investment.</p>
+<p>Clearly, short term price changes didn’t move supply - as there wasn’t any available.</p>
+<p>Because, it clearly takes time and cost heavy investment to build capacity.</p>
+</section>
+<section id="shifts-and-elasticity" class="level3">
+<h3 class="anchored" data-anchor-id="shifts-and-elasticity">1.1: Shifts and elasticity</h3>
+<p>One could argue that the above can be accumulated within a supply = f(price) framework.</p>
+<p>Shifting the supply curve to zero.</p>
+<p>And / or flattening it, so no price impact.</p>
+<p>But, if we allow that the supply curve can shift, and then shift back, we need a model for when it does so.</p>
+<p>That, I’d argue, is via investment in new capacity. In that sense, shifts in supply curve drop out of the capacity investment model: so even if f(price) can accomodate, it has to rely on f(capacity) to be of use.</p>
+<p>Similar argument against the slope, clearly price does impact supply - just over a time frame not specified in the model.</p>
+<p>How do we specify it? With a capacity model.</p>
+<p>So again, the part we care about in the f(price) model turns out to be completely not-representable (insufficient) variables, without resort to a capacity model.</p>
 </section>
 <section id="supply-fprice-is-true-except-in-special-cases" class="level3">
-<h3 class="anchored" data-anchor-id="supply-fprice-is-true-except-in-special-cases">1.1: Supply = f(price) is true except in special cases</h3>
-<p>Are the above special cases?</p>
+<h3 class="anchored" data-anchor-id="supply-fprice-is-true-except-in-special-cases">1.2: Supply = f(price) is true except in special cases</h3>
+<p>One could argue that semis and gas are unusually fixed capital intensive industries, and so special cases: in general, supply can adjust as required.</p>
 <p>Examples:</p>
 <ul>
 <li><p>Pharma</p></li>
@@ -194,92 +211,125 @@ ul.task-list li input[type="checkbox"] {
 <p>Clearly, significant time and cash (and materials) is expended ahead of time, to support future supply capability.</p>
 <p>Rather, special cases just expose the underlying process, that is otherwise behind the scenes when running smoothly.</p>
 </section>
-<section id="supply-fprice-is-false-but-useful" class="level3">
-<h3 class="anchored" data-anchor-id="supply-fprice-is-false-but-useful">1.2: Supply = f(price) is false but useful</h3>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">1.3: Conclusion</h3>
+<p>Either false</p>
+<p>Or the interesting parts of the model have to be just arbitrarily assumed, but are completely external to the model</p>
+<p>Whereas they’re fully representable if not predictable by a supply = f(capacity) model.</p>
+</section>
+</section>
+<section id="supply-fprice-is-false-but-useful" class="level2">
+<h2 class="anchored" data-anchor-id="supply-fprice-is-false-but-useful">2: Supply = f(price) is false but useful</h2>
 <p>Common refrain, Lucas, doesn’t have to be true if (practically?) useful.</p>
-<p>Argue this isn’t the case, highlighting particular cases where the f(price) analysis leads to either straight wrong, or at best empirically empty, results / analysis.</p>
-<section id="supply-is-fixed-in-the-short-term" class="level4">
-<h4 class="anchored" data-anchor-id="supply-is-fixed-in-the-short-term">1.2.0: Supply is fixed in the short term</h4>
-<p>As we saw with covid, there’s a time component to new investment.</p>
-<p>We could add a time index to our curve shifts.</p>
-<p>But really, it’s actually a surface vs investment over time, for future supply.</p>
-<p>At which point, it becomes obvious that price isn’t really playing a role at all: price determines which path we chose to take, but in the present, capacity is effectively already baked in.</p>
+<p>Price changes the ROI, so in the long run, we can in some sense supply is partially a function of price (even in a capacity model).</p>
+<p>Even if it’s a massive over simplification.</p>
+<section id="time" class="level3">
+<h3 class="anchored" data-anchor-id="time">2.: Time</h3>
+<p>Essentially, f(price) is to ignore time: conflate short and long.</p>
+<section id="time-is-what-we-actually-want-to-model" class="level4">
+<h4 class="anchored" data-anchor-id="time-is-what-we-actually-want-to-model">2. Time is what we actually want to model</h4>
+<p>But arguably the key question we’re interested in is probably something to do with how long it takes.</p>
+<p>And how much it will cost.</p>
+<p>Just saying that it will (maybe) eventually icnrease doesn’t tell us anything of use at all.</p>
+<p>What matters for price formation, and the rest of the economy depending on these outputs, is when.</p>
+<p>If you assume that away, you can say almost whatever you like.</p>
 </section>
-<section id="aside" class="level4">
-<h4 class="anchored" data-anchor-id="aside">Aside</h4>
-<p>Price is a much better predictor then of short term utilisation of the fixed capacity base.</p>
-<p>Where a low price will lead eventually to the capacity declining, as the under-used capacity is rolled up.</p>
-</section>
-<section id="price-is-only-relevant-to-the-extent-it-changes-investment-decisions" class="level4">
-<h4 class="anchored" data-anchor-id="price-is-only-relevant-to-the-extent-it-changes-investment-decisions">1.2.1: Price is only relevant to the extent it changes investment decisions</h4>
-<p>Given this, price is only relevant as a signal to the extent it changes those cumulative decisions.</p>
-<p>As such, policy based on an arbitrary supply curve isn’t necessarily going to help.</p>
-<p>Eg. …</p>
-<p>Unless, it clearly makes the investment attractive - for instance, that we know the price will be high in the future (demand will still be there).</p>
-</section>
-<section id="investment-goods-complimentary-to-capacity" class="level4">
-<h4 class="anchored" data-anchor-id="investment-goods-complimentary-to-capacity">1.2.2: Investment goods / complimentary to capacity</h4>
-<p>Also makes clear that investment is the constraint, and that can be effected by eg. material shortages.</p>
-<p>IP shortages, skilled labour shortages (ie. complimentary goods).</p>
-<p>Arbitrarily shifting the supply curve just because price has risen is to assume all of these away - clearly erroneously.</p>
-</section>
-<section id="funding-limits" class="level4">
-<h4 class="anchored" data-anchor-id="funding-limits">1.2.3: Funding limits</h4>
-<p>Clearly, investment is often loan backed, if not from free cash flow.</p>
-<p>Thus, increasing the cost of loans will reduce investment and hence future capacity, all else equal.</p>
-<p>Employ america post on volker leading to capacity fall.</p>
-</section>
-<section id="aside-1" class="level4">
-<h4 class="anchored" data-anchor-id="aside-1">Aside</h4>
-<p>Making it clear supply changes are function of investment in capacity, and capacity is often load backed.</p>
-<p>Implies that demand for paper is a function of demand for new investment.</p>
-<p>And hence that borrowing will only be if perceived attractive investment opportunities.</p>
-</section>
-<section id="taxes-and-supply-side-changes" class="level4">
-<h4 class="anchored" data-anchor-id="taxes-and-supply-side-changes">1.2.4: Taxes and ‘supply side’ changes</h4>
-<p>Clearly if they don’t change the RoI on the capacity itself, they’ll just lead to return of capital to shareholders.</p>
-<p>Ie. if you weren’t investing before, they won’t make it suddenly competitive.</p>
-<p>What you actually need is long term demand for the new unit capacity.</p>
-<p>And or expected pricing power (sort of same thing).</p>
+<section id="ignores-the-decision-part" class="level4">
+<h4 class="anchored" data-anchor-id="ignores-the-decision-part">2.: Ignores the decision part</h4>
+<p>We have to invest ahead of time in future demand</p>
+<p>The key question in econ, business, and we assume it away.</p>
+<p>As we’ll see, not doing so makes a bunhc of toher problems much more tractable.</p>
 </section>
 </section>
-<section id="pros" class="level3">
-<h3 class="anchored" data-anchor-id="pros">2: Pros</h3>
-<p>Supply is dynamic - changes over time, with returns to scale, new investment, mothballing of old capacity.</p>
-<p>Clearly, capacity is also the determining feature of a significant part of the rest of the system, because it’s a short term constant (fixed).</p>
-<p>We should then be modelling it explicitly, so we can answer interesting questions.</p>
-<section id="what-shift-will-actually-happen." class="level4">
-<h4 class="anchored" data-anchor-id="what-shift-will-actually-happen.">2.0: What shift will actually happen.</h4>
-<p>Rather than arbitrary lines on page, which clearly may or may not realise, we can predict whether supply will change.</p>
-<p>The shifts are what we should be trying to predict as economists: not taking them arbitrarily as given.</p>
+<section id="other-inputs-to-roi" class="level3">
+<h3 class="anchored" data-anchor-id="other-inputs-to-roi">2.: Other inputs to ROI</h3>
+<p>The second thing, on top of time, is that it takes cash (over time) to invest, and we’re fundamentally (mostly) interested in some kind of ROI on capcity.</p>
+<section id="rates" class="level4">
+<h4 class="anchored" data-anchor-id="rates">2.: Rates</h4>
+<p>Hence raising rates will reduce investment, see it in the employ america link to the drop in american capacity with volker shock.</p>
+<p>Ignoring time is to ignore rates.</p>
 </section>
-<section id="how-long-will-it-take" class="level4">
-<h4 class="anchored" data-anchor-id="how-long-will-it-take">2.1: How long will it take</h4>
-<p>More specifically, we can specify and model and measure how long a particular capacity change will take.</p>
-<p>We can therefore consider what the price impact might be in the short term, were there to be a demand (or supply) shock, based on long how new capacity takes to come online (and cost).</p>
+<section id="demand" class="level4">
+<h4 class="anchored" data-anchor-id="demand">2.: Demand</h4>
+<p>Key thing is expected future demand meeting the new capacity investment.</p>
+<p>Ignoring time is to ignore that investing in future demand, ahead of that demand, because investment takes time.</p>
 </section>
-<section id="returns-to-scale" class="level4">
-<h4 class="anchored" data-anchor-id="returns-to-scale">2.2: Returns to scale</h4>
-<p>We can model which industries have returns to scale in what ways, as that’s a primary determinant of the investment decision.</p>
-<p>Instead of just being assumed linear (or even worse, sub-linear).</p>
-</section>
-<section id="industrial-configuration" class="level4">
-<h4 class="anchored" data-anchor-id="industrial-configuration">2.3: Industrial configuration</h4>
-<p>How it will change over time is a function of the relevant industries capacity investment decisions over time, and how these end up inter-relating with demand.</p>
+<section id="tax" class="level4">
+<h4 class="anchored" data-anchor-id="tax">2.: Tax</h4>
+<p>Corrolary of demand, is supply side taxation is partly nonsense.</p>
+<p>Tax will only matter to the extent its the marginal decision.</p>
+<p>If no demand, likely just lead to cash return to investors - eg. trump cuts.</p>
 </section>
 </section>
+<section id="other-inputs-to-capacity-non-homogenous-capital" class="level3">
+<h3 class="anchored" data-anchor-id="other-inputs-to-capacity-non-homogenous-capital">2.: Other inputs to capacity: non homogenous capital</h3>
+<p>The second question is that capacity takes more than just time - it takes other goods.</p>
+<section id="expertise" class="level4">
+<h4 class="anchored" data-anchor-id="expertise">2.: Expertise</h4>
+<p>Expertise, compounds over time.</p>
+<p>Hence why certain countries are the only creating certain goods.</p>
+<p>Certain firms.</p>
+<p>Argument for targeted state support.</p>
 </section>
-<section id="conclusion-supply-is-dynamic" class="level2">
-<h2 class="anchored" data-anchor-id="conclusion-supply-is-dynamic">3: Conclusion, supply is dynamic</h2>
-<p>Supply changes over time with investment in capacity.</p>
-<section id="tbc" class="level3">
-<h3 class="anchored" data-anchor-id="tbc">3.0: TBC</h3>
-<p>This is what we should be modelling: why and how the curve shifts (dimensions being time and spend on the capacity, vs future capacity given that spending path over time, not price of output), what curves arise in what industrial structures, how long and how expensive, how this leads to different industrial configurations, and so on.</p>
-<p>Not just taking it as given, and assuming away everything that we should actually be working to determine.</p>
-<p>Price is only relevant to the extent it changes this decision-making, and should be treated in both policy and analysis accordingly.</p>
+<section id="capital-goods" class="level4">
+<h4 class="anchored" data-anchor-id="capital-goods">2.: Capital goods</h4>
+<p>…</p>
 </section>
-<section id="section" class="level3">
-<h3 class="anchored" data-anchor-id="section">3.1:</h3>
+<section id="natural-resourcers" class="level4">
+<h4 class="anchored" data-anchor-id="natural-resourcers">Natural resourcers?</h4>
+</section>
+</section>
+<section id="conclusion-1" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion-1">2.: Conclusion</h3>
+<p>Because it ignores time, merges short and long term</p>
+<p>We are unable to model - because we’ve assumed it away - most of the actually interesting questions.</p>
+<p>For instance, …</p>
+<p>Can therefore draw arbirary lines and assert whatever we like.</p>
+</section>
+</section>
+<section id="implications" class="level2">
+<h2 class="anchored" data-anchor-id="implications">3: Implications</h2>
+<p>THings that become modellable / intuitive once we model supply as short term fixed, f(capacity)</p>
+<section id="cycles" class="level3">
+<h3 class="anchored" data-anchor-id="cycles">3.: Cycles</h3>
+<p>Cycles - investing ahead of demand</p>
+<p>Assume several at once, and demand falls short: cycle</p>
+</section>
+<section id="returns-to-scale" class="level3">
+<h3 class="anchored" data-anchor-id="returns-to-scale">3.: Returns to scale</h3>
+<p>Clearly function of each industry differently.</p>
+<p>Define the limits to investment.</p>
+<p>When you build a single giant factory vs separate restaurants.</p>
+<p>Interesting questions are how these interact with the cycles.</p>
+</section>
+<section id="growth" class="level3">
+<h3 class="anchored" data-anchor-id="growth">3.: Growth</h3>
+<p>Via investment in new productive capacity, improve rts, free investment for elsewhere</p>
+<p>Function of demand</p>
+</section>
+<section id="paper-demand" class="level3">
+<h3 class="anchored" data-anchor-id="paper-demand">3.: Paper demand</h3>
+<p>Investing ahead of demand, often debt backed.</p>
+<p>Therefore demand for paper is partly a funciton for noncash financed investment</p>
+<p>Link to eg. chinese growth model.</p>
+</section>
+<section id="price-dynamics" class="level3">
+<h3 class="anchored" data-anchor-id="price-dynamics">3.: Price dynamics</h3>
+<p>Price will then be determined by the interaction of previous investment.</p>
+<p>And future demand.</p>
+<p>Where it need never clear.</p>
+</section>
+</section>
+<section id="conclusion-2" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion-2">Conclusion</h2>
+<section id="supply-ftime-not-fprice" class="level3">
+<h3 class="anchored" data-anchor-id="supply-ftime-not-fprice">4.0: Supply = f(time) not f(price)</h3>
+<p>…</p>
+<p>Investment function, how time and cash translates to capacity of a certain efficiency, is much more important than elasticity</p>
+<p>And subsumes it</p>
+</section>
+<section id="next-steps" class="level3">
+<h3 class="anchored" data-anchor-id="next-steps">4.: Next steps</h3>
 <p>Given the investment-time to future capacity surface.</p>
 <p>Can then look at a return on investment surface, to then get out actual investment per period.</p>
 <p>Which then determines actual capacity.</p>
@@ -331,7 +381,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -367,24 +434,42 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return note.innerHTML;
     });
   }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
