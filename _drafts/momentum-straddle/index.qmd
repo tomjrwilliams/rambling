@@ -1,0 +1,91 @@
+
+
+Filter a universe under a given lookback
+
+To those names with pos / neg momentum over a given threshold
+
+
+Is that effectively a conditional correlation filter?
+
+Ie. the filtered correlation matrix should have higher coefficients on average
+
+Than the unfiltered matrix?
+
+
+
+^^ Test this. Graph filtered correlation matrix average coefficient, distribution thereof
+
+Over rolling universe
+
+Versus the full matrix average correlation
+
+
+
+Momentum trading is thus in some sense (assuming the above)
+
+To assume continuity, stickiness, slow reversion
+
+In that correlation matrix filtering
+
+
+Ie. to bet on (continuing) dispersion, up further up, down further down
+
+
+
+Is one way to then filter a momentum book, to evaluate whether the implied correlation filtering of the trend ranking
+
+Is a 'sensible' correlation matrix?
+
+Eg. has a 'clean' PC representation, for instance (large PC factor weight representation?)
+
+
+
+If it's not, one could even trade mean reversion? So the trend vs reversion is run at the level of the entire book at once?
+
+Ie. we assume that trends are generally cross asset in some sense
+
+And so the trend component for a given name, should have dragged up other related / correlated names
+
+If there's a real driver
+
+If not, we assume idiosyncratic and revert?
+
+
+
+I suppose that's where additional filtering can come in
+
+For instance, if the correlation unexpected trending name
+
+Has had a recent earnings release (or even a related name)? Or some news event, that's likely a reason not to try and revert (even if we still don't trend it)
+
+
+
+So there's eg. ewma correlation matrix -> trend rank as filtering of the matrix
+
+Could even whether it does indeed sort the correlation matrix, be used as the sensible ness criteria?
+
+
+
+But then there's also, the equivalent delta but after removing certain dates (say earnings)
+
+Where the correlation is presumably in the opposite direction - remove those dates, if the average correlation goes up
+
+We assume those names are being driven particularly idiosyncratically (i guess assuming it also changes the trend rankings?)
+
+
+
+So a separate signal is then, trend rank, vs earnings day (and equiv) excluded trend rank
+
+Also big macro day excluded trend rank
+
+
+
+
+
+The above might be easier with a kind of kernel pca approach - ie. assume a conditional covariance matrix (via time varying kernel function)
+
+With the kernel function eg. via some kind of time varying linear factor model
+
+Eg. varying path of factors, multiplied up into larger space of the individual assets, 
+
+Cross product function application into the kernel function to get the covariance matrix?

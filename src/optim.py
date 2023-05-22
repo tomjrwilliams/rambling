@@ -21,6 +21,7 @@ def fit_parameters(
     f_scheduler = lambda opt: torch.optim.lr_scheduler.ExponentialLR(
         opt, gamma=0.9
     ),
+    with_tqdm = False,
     progress_bar = False,
 ):
     num_iter = epochs * iters
@@ -30,7 +31,10 @@ def fit_parameters(
     optimiser = f_optimiser(params)
     scheduler = f_scheduler(optimiser)
 
-    iterator = tqdm.tqdm(range(num_iter), disable=not progress_bar)
+    if with_tqdm:
+        iterator = tqdm.tqdm(range(num_iter), disable=not progress_bar)
+    else:
+        iterator = range(num_iter)
 
     for i in iterator:
         optimiser.zero_grad()
@@ -41,7 +45,8 @@ def fit_parameters(
         loss.backward()
         optimiser.step()
 
-        iterator.set_postfix(iter = i, loss=loss.item())
+        if with_tqdm:
+            iterator.set_postfix(iter = i, loss=loss.item())
 
         if i > 0 and i % iters == 0:
             scheduler.step()
@@ -49,7 +54,7 @@ def fit_parameters(
         if f_converge is not None and f_converge(losses, params):
             break
 
-    if not progress_bar:
+    if not progress_bar and with_tqdm:
         iterator = tqdm.tqdm(range(num_iter))
         iterator.set_postfix(iter = i, loss=losses[-1], refresh = False)
         iterator.update(i)

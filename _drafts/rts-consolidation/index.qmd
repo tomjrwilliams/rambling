@@ -1,0 +1,9 @@
+---
+title: "TBC"
+author: "Tom Williams"
+date: "TBC"
+categories: []
+draft: true
+---
+
+In presence of rts and volatility, industry will tend to consolidate around the borders defined by the scaling function

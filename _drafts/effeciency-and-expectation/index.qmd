@@ -1,0 +1,35 @@
+---
+title: "TBC"
+author: "Tom Williams"
+date: "TBC"
+categories: []
+draft: true
+---
+
+If profit distribution from a trade is non uniform (?) then price won't equal probability expected value.
+
+It'll equal profit balance expected value for either side.
+
+So price isn't necessarily the best gauge of likelihood.
+
+For instance, say one side of a trade is negative carry: it will be priced accordingly, even if people think it's likely, they won't take the neg carry.
+
+Vice versa. Positive carry side can be over priced relative to probs.
+
+Say CDS spreads.
+
+Also particular steepen or flatten.
+
+Also means that you wait for the price to move before you put the bet on. So it can make everything path dependent: the neg carry side will move faster.
+
+The positive carry will grind back in.
+
+
+
+Interestingly corollory would be equities are over priced in probability terms because of the positive carry.
+
+Which hence explains the negative return skew and the vol skew.
+
+They're sitting slightly over priced to fair value most of the time, and occassionally revert (plus momentum) to the exact opposite side.
+
+They're generally not sitting at fair value.

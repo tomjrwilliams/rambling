@@ -1,0 +1,221 @@
+---
+title: "Exponentially distributed rotation"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+
+
+
+For instance, let's say that I want to decompose:
+
+- A yield surface across tenor and credit rating through time.
+
+Into:
+
+- A time series of a smaller number of factors, say:
+
+    - The level of the yield surface.
+    - The slope of the term structure.
+    - The slope of the rating structure.
+
+- A function for mapping from the values of the three factors at a given point, back to the whole surface.
+
+One assumption I might have about the three factors above, is that they only change gradually over time.
+
+
+
+
+```{python}
+#| code-fold: true
+#| code-summary: "Setup"
+import os
+import sys
+import importlib
+sys.path.append("C:/rambling")
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Imports"
+from src import inspect
+from src import transforms
+from src import graphs
+
+importlib.reload(graphs)
+importlib.reload(transforms)
+importlib.reload(inspect)
+
+import numpy
+import pandas
+import torch
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Plot Exp"
+
+torch_pi = torch.acos(torch.zeros(1)).item() * 2
+
+MU = [
+    (v + 1) / 10 for v in range(9)
+] + [
+    (v + 1) for v in range(5)
+]
+
+def density(vs):
+    v_sorted = list(sorted(vs, reverse=True))
+    return (
+        list(range(len(vs))),
+        v_sorted,
+    )
+
+def sample_exp(mu, n = 400):
+    return sum(
+        torch.distributions.Exponential(
+            torch.Tensor([mu])
+        ).sample([n]).tolist(), []
+    )
+
+def sample_norm(mu, sig, n = 400):
+    return sum(
+        torch.distributions.Normal(
+            torch.Tensor([mu]),
+            torch.Tensor([sig]),
+        ).sample([n]).tolist(), []
+    )
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Plot Exp"
+graphs.render_graphs([
+    dict(
+        f=graphs.hist_graph,
+        args=(sample_exp(mu),),
+        kwargs=dict(
+            label = "exp({})".format(mu),
+            # s=0.1,
+            bins=20,
+            density=True,
+
+        )
+    )
+    for mu in MU
+])
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rotate Exp"
+gs = []
+for mu in MU:
+    v_exp = torch.Tensor(sample_exp(mu)) * torch_pi
+    gs.append([
+        dict(
+            f=graphs.hist_graph,
+            args=(torch.cos(v_exp).tolist(),),
+            # args=density(torch.cos(v_exp).tolist()),
+            kwargs=dict(
+                label="cos(exp({}))".format(mu),
+                # hlines=[-1, 1.],
+                # s=0.1,
+                density=True,
+                bins=20,
+                vlines=[-1, 1.],
+            ),
+        ),
+        dict(
+            f=graphs.hist_graph,
+            args=(torch.sin(v_exp).tolist(),),
+            # args=density(torch.sin(v_exp).tolist()),
+            kwargs=dict(
+                label="sin(exp({}))".format(mu),
+                # hlines=[-1, 1.],
+                # s=0.1,
+                density=True,
+                bins=20,
+                vlines=[-1, 1.],
+            ),
+        )
+    ])
+graphs.render_graphs(gs)
+```
+
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rotate Exp"
+gs = []
+for mu in MU:
+    v_exp = torch.Tensor(sample_norm(0., mu)) * torch_pi
+    gs.append([
+        dict(
+            f=graphs.hist_graph,
+            args=(torch.cos(v_exp).tolist(),),
+            # args=density(torch.cos(v_exp).tolist()),
+            kwargs=dict(
+                label="cos(norm({}))".format(mu),
+                # hlines=[-1, 1.],
+                # s=0.1,
+                density=True,
+                bins=20,
+                vlines=[-1, 1.],
+            ),
+        ),
+        dict(
+            f=graphs.hist_graph,
+            args=(torch.sin(v_exp).tolist(),),
+            # args=density(torch.sin(v_exp).tolist()),
+            kwargs=dict(
+                label="sin(norm({}))".format(mu),
+                # hlines=[-1, 1.],
+                # s=0.1,
+                density=True,
+                bins=20,
+                vlines=[-1, 1.],
+            ),
+        )
+    ])
+graphs.render_graphs(gs)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rotate Exp"
+gs = []
+for mu in MU:
+    for m in list(range(11)):
+        mm = round(-1 + (m * .2), 2)
+        v_exp = torch.Tensor(sample_norm(mm, mu)) * torch_pi
+        gs.append(
+            dict(
+                f=graphs.hist_graph,
+                args=(torch.cos(v_exp).tolist(),),
+                # args=density(torch.cos(v_exp).tolist()),
+                kwargs=dict(
+                    label="cos(norm({}, {}))".format(mm, mu),
+                    # hlines=[-1, 1.],
+                    # s=0.1,
+                    density=True,
+                    bins=20,
+                    vlines=[-1, 1.],
+                ),
+            )
+        )
+graphs.render_graphs(gs)
+```
+
+I think one way to use the smoothing
+
+Is pca rates
+
+Then say, we want to make the factors functions of variables
+
+Then say, we want to vary the parameters of these functions slowly over time
+
+Ie. a simple linear model for the level (exp to be positive) and slope terms
+
+That we then constrain with eg. 2nd derivative path, and plot with and without the constraint

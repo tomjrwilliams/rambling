@@ -1,0 +1,169 @@
+---
+title: "Bayesian"
+author: "Tom Williams"
+date: "2022-12-30"
+categories: []
+draft: true
+---
+
+p(a|b) = p(b|a)p(a) / p(b)
+
+So, for instance, we can take the base rate of a transaction.
+
+
+Aiming for what, probability of being above the optimal price?
+
+Can't be straight price and quantity, because what is p(price|quantity)?
+
+
+Are we really sampling on the market sizes.
+
+p(market | sample) = p(sample | market) p(market) / p(sample)
+
+
+
+ie. given an arrival rate, estimate the total market size, given the sample transactions (demand) per period.
+
+
+
+
+Then the question is, assume that pricing changes the total market size. How do we (iteratively? or single shot pick) the price, to maximise our expectation of market size?
+
+
+
+We're then looking at the above, but conditioning on change in price.
+
+Versus change in price (and other changes?)
+
+
+Ie. p(change market | change price) = p (change price | change market) p (change market) / p (change price)
+
+
+
+Or, given level of price - the idea there being to normalise the sample information over other times the price has been at that level.
+
+
+
+Ie. p(market | sample, price) = p(sample, price | market) p(market) / p(sample, price)
+
+
+Where you can presumably then decompose out separate variables for eg. the transaction rate
+
+And for the market size
+
+As a function of price
+
+
+
+So you're looking for the distribution change conditional on the data
+
+For how price relates to those two quantities - how likely is it the different sample counts observed were from rate changes, versus market size changes
+
+
+So which then depend on your priors for the rate distribution, and the market size distribution
+
+
+
+I suppose you could hold the market size constant and have a distribution within that population of rates
+
+That approaches but never reaches zero
+
+And the change is in that distribution, bringing more of the population into play
+
+
+
+
+I suppose one reason not to model like that
+
+Is market share effectively divides the market into binary, and then a rate parameter within that
+
+Where the rate might be shared across the population
+
+Though that still then has a fixed potential market, that just gets sub divided before the rate sample
+
+
+
+The rate part works at least where you can be within an order of magntidue for the population
+
+When wouldn't you be?
+
+And where the population is potentially changing between orders of magnitude?
+
+
+
+Ie. the question is effectively one of within population stickiness
+
+Reduction by slowing vs churning out.
+
+Arguably keeping as rate makes the math simpler, distribution of rate
+
+
+But the discrete churn model is fairly simple to think about.
+
+
+
+
+I guess where the population does make sense is opening up new markets - eg. stores.
+
+Odds of existing customers just travelling to new store, versus genuinely new customers.
+
+## Restart
+
+A better way to model
+
+Is a distribution of budget available for good per period
+
+And then given market size (random variable?)
+
+We get a customers as number of samples over price
+
+
+So given price change
+
+Can estimate how many should hit
+
+Given delta
+
+
+Either we overestimated the market size in people
+
+Or we overestimated the density at that price point, shape of distribution
+
+
+
+
+I guess one key point on the rate
+
+Is that it implies price change should be at the rate of information received about it - ie. proportional to transaction rate
+
+Slower traded goods should be moved in price slower?
+
+And increasingly so as they slow down?
+
+
+
+
+I suppose is the key point with the above
+
+To point out how business cycles can happen just from a varying rate parameter
+
+As a function of other macro conditions
+
+
+Where purely random fluctuations in one variable can have correlated self reinforcing effects in others
+
+To create cycles from random initial divergences
+
+
+
+Ie. one way the above is interesting is if we assume cyclicality in the budget function
+
+That would immediate generate it in the transaction rate
+
+Or more generally not cyclicality but trending variability
+
+In which case the question is then the likelihood of change in distribution from that
+
+Versus random sampling divergence
+
+Assuming we hold the population constant

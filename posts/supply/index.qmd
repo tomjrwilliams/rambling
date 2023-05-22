@@ -3,16 +3,18 @@ title: "Supply: f(capacity) not f(price)"
 author: "Tom Williams"
 date: "2023-03-04"
 categories: []
-draft: false
+draft: true
 ---
 
 ## 0: Intro
+
+In this, ...
 
 ### 0.0: Current
 
 Supply is a function of price.
 
-Take intersection of supply and demand curve in price space, to find supply == demand.
+Take intersection of supply and demand curve in price space, to find supply == demand at price == p.
 
 Under relevant efficient market assumptions (non monopolistic, etc.).
 
@@ -24,25 +26,25 @@ Supply is - first and foremost - a function of cumulative investment in producti
 
 Productive investment requires cash, raw materials, and time.
 
+As such, supply is effectively fixed in the short term - beyond the flexibility provided by onhand inventory.
+
 Because investment is expensive, it is only under-taken when expected to generate a positive return over its life.
 
-Price is thus only relevant to supply, in so far as it changes the expected RoI of incremental new capacity investment / maintenance.
+Price is thus still relevant, but only in so far as it changes the expected RoI of incremental new capacity investment / maintenance.
 
-### 0.2: Examples
+### 0.2: Methodology
 
-Semis
+Show that it's either redundant, with the interesting parts of the system not modellable (without resort to a capacity model) or just outright false.
 
-Oil
+Claims:
 
-Pharma
+- Supply is, aside from inventory management, short term fixed, and thus not directly a function of price.
 
-Retail (distribution)
+- Supply is, instead, a function of cumulative investment to that point: which at point t is effectively fixed.
 
-Retail (brands / marketing)
+## 1: Evidence
 
-Labor
-
-## 1: Objections
+Start with assuming the strong form, supply = f(price), show that logical / intuitions from this premise don't hold, and then progressively weaken the premise until we reach claim 2, supply = f(investment).
 
 ### 1.0: Supply = f(price) is true
 
@@ -52,13 +54,33 @@ But, examples:
 
 - Covid, semis
 
-- Ukraine, oil and gas (particularly liquification capacity)
+- Ukraine, oil and gas (particularly liquification capacity).
 
-Clearly, changing supply beyond relatively small local fluctations (effectively inventory on hand in most cases), requires time and cost heavy investment.
+Clearly, short term price changes didn't move supply - as there wasn't any available.
 
-### 1.1: Supply = f(price) is true except in special cases
+Because, it clearly takes time and cost heavy investment to build capacity.
 
-Are the above special cases?
+### 1.1: Shifts and elasticity
+
+One could argue that the above can be accumulated within a supply = f(price) framework.
+
+Shifting the supply curve to zero.
+
+And / or flattening it, so no price impact.
+
+But, if we allow that the supply curve can shift, and then shift back, we need a model for when it does so.
+
+That, I'd argue, is via investment in new capacity. In that sense, shifts in supply curve drop out of the capacity investment model: so even if f(price) can accomodate, it has to rely on f(capacity) to be of use.
+
+Similar argument against the slope, clearly price does impact supply - just over a time frame not specified in the model.
+
+How do we specify it? With a capacity model.
+
+So again, the part we care about in the f(price) model turns out to be completely not-representable (insufficient) variables, without resort to a capacity model.
+
+### 1.2:  Supply = f(price) is true except in special cases
+
+One could argue that semis and gas are unusually fixed capital intensive industries, and so special cases: in general, supply can adjust as required.
 
 Examples:
 
@@ -74,115 +96,153 @@ Clearly, significant time and cash (and materials) is expended ahead of time, to
 
 Rather, special cases just expose the underlying process, that is otherwise behind the scenes when running smoothly.
 
-### 1.2: Supply = f(price) is false but useful
+### 1.3: Conclusion
+
+Either false
+
+Or the interesting parts of the model have to be just arbitrarily assumed, but are completely external to the model
+
+Whereas they're fully representable if not predictable by a supply = f(capacity) model.
+
+## 2: Supply = f(price) is false but useful
 
 Common refrain, Lucas, doesn't have to be true if (practically?) useful.
 
-Argue this isn't the case, highlighting particular cases where the f(price) analysis leads to either straight wrong, or at best empirically empty, results / analysis.
+Price changes the ROI, so in the long run, we can in some sense supply is partially a function of price (even in a capacity model).
 
-#### 1.2.0: Supply is fixed in the short term
+Even if it's a massive over simplification.
 
-As we saw with covid, there's a time component to new investment.
+### 2.: Time
 
-We could add a time index to our curve shifts.
+Essentially, f(price) is to ignore time: conflate short and long.
 
-But really, it's actually a surface vs investment over time, for future supply.
+#### 2. Time is what we actually want to model
 
-At which point, it becomes obvious that price isn't really playing a role at all: price determines which path we chose to take, but in the present, capacity is effectively already baked in.
+But arguably the key question we're interested in is probably something to do with how long it takes.
 
-#### Aside
+And how much it will cost.
 
-Price is a much better predictor then of short term utilisation of the fixed capacity base.
+Just saying that it will (maybe) eventually icnrease doesn't tell us anything of use at all.
 
-Where a low price will lead eventually to the capacity declining, as the under-used capacity is rolled up.
+What matters for price formation, and the rest of the economy depending on these outputs, is when.
 
-#### 1.2.0 Continued: Price is only relevant to the extent it changes investment decisions
+If you assume that away, you can say almost whatever you like.
 
-Given this, price is only relevant as a signal to the extent it changes those cumulative decisions.
+#### 2.: Ignores the decision part
 
-As such, policy based on an arbitrary supply curve isn't necessarily going to help.
+We have to invest ahead of time in future demand
 
-Eg. ...
+The key question in econ, business, and we assume it away.
 
-Unless, it clearly makes the investment attractive - for instance, that we know the price will be high in the future (demand will still be there).
+As we'll see, not doing so makes a bunhc of toher problems much more tractable.
 
-#### 1.2.1: Investment goods / complimentary to capacity
+### 2.: Other inputs to ROI
 
-Also makes clear that investment is the constraint, and that can be effected by eg. material shortages.
+The second thing, on top of time, is that it takes cash (over time) to invest, and we're fundamentally (mostly) interested in some kind of ROI on capcity.
 
-IP shortages, skilled labour shortages (ie. complimentary goods).
+#### 2.: Rates
 
-Arbitrarily shifting the supply curve just because price has risen is to assume all of these away - clearly erroneously.
+Hence raising rates will reduce investment, see it in the employ america link to the drop in american capacity with volker shock.
 
-#### 1.2.2: Funding limits
+Ignoring time is to ignore rates.
 
-Clearly, investment is often loan backed, if not from free cash flow.
+#### 2.: Demand
 
-Thus, increasing the cost of loans will reduce investment and hence future capacity, all else equal.
+Key thing is expected future demand meeting the new capacity investment.
 
-Employ america post on volker leading to capacity fall.
+Ignoring time is to ignore that investing in future demand, ahead of that demand, because investment takes time.
 
-#### Aside
+#### 2.: Tax
 
-Making it clear supply changes are function of investment in capacity, and capacity is often load backed.
+Corrolary of demand, is supply side taxation is partly nonsense.
 
-Implies that demand for paper is a function of demand for new investment.
+Tax will only matter to the extent its the marginal decision.
 
-And hence that borrowing will only be if perceived attractive investment opportunities.
+If no demand, likely just lead to cash return to investors - eg. trump cuts.
 
-#### 1.2.3: Taxes and 'supply side' changes
+### 2.: Other inputs to capacity: non homogenous capital
 
-Clearly if they don't change the RoI on the capacity itself, they'll just lead to return of capital to shareholders.
+The second question is that capacity takes more than just time - it takes other goods.
 
-Ie. if you weren't investing before, they won't make it suddenly competitive.
+#### 2.: Expertise
 
-What you actually need is long term demand for the new unit capacity.
+Expertise, compounds over time.
 
-And or expected pricing power (sort of same thing).
+Hence why certain countries are the only creating certain goods.
 
-### 2: Pros
+Certain firms.
 
-Supply is dynamic - changes over time, with returns to scale, new investment, mothballing of old capacity.
+Argument for targeted state support.
 
-Clearly, capacity is also the determining feature of a significant part of the rest of the system, because it's a short term constant (fixed).
+#### 2.: Capital goods
 
-We should then be modelling it explicitly, so we can answer interesting questions.
+...
 
-#### 2.0: What shift will actually happen.
+#### Natural resourcers?
 
-Rather than arbitrary lines on page, which clearly may or may not realise, we can predict whether supply will change.
+### 2.: Conclusion
 
-The shifts are what we should be trying to predict as economists: not taking them arbitrarily as given.
+Because it ignores time, merges short and long term
 
-#### 2.1: How long will it take
+We are unable to model - because we've assumed it away - most of the actually interesting questions.
 
-More specifically, we can specify and model and measure how long a particular capacity change will take.
+For instance, ...
 
-We can therefore consider what the price impact might be in the short term, were there to be a demand (or supply) shock, based on long how new capacity takes to come online (and cost).
+Can therefore draw arbirary lines and assert whatever we like.
 
-#### 2.2: Returns to scale
+## 3: Implications
 
-We can model which industries have returns to scale in what ways, as that's a primary determinant of the investment decision.
+THings that become modellable / intuitive once we model supply as short term fixed, f(capacity)
 
-Instead of just being assumed linear (or even worse, sub-linear).
+### 3.: Cycles
 
-#### 2.3: Industrial configuration
+Cycles - investing ahead of demand
 
-How it will change over time is a function of the relevant industries capacity investment decisions over time, and how these end up inter-relating with demand.
+Assume several at once, and demand falls short: cycle
 
-## 3: Conclusion, supply is dynamic
+### 3.: Returns to scale
 
-Supply changes over time with investment in capacity.
+Clearly function of each industry differently.
 
-### 3.0: TBC
+Define the limits to investment.
 
-This is what we should be modelling: why and how the curve shifts (dimensions being time and spend on the capacity, vs future capacity given that spending path over time, not price of output), what curves arise in what industrial structures, how long and how expensive, how this leads to different industrial configurations, and so on.
+When you build a single giant factory vs separate restaurants.
 
-Not just taking it as given, and assuming away  everything that we should actually be working to determine.
+Interesting questions are how these interact with the cycles.
 
-Price is only relevant to the extent it changes this decision-making, and should be treated in both policy and analysis accordingly.
+### 3.: Growth
 
-### 3.1: 
+Via investment in new productive capacity, improve rts, free investment for elsewhere
+
+Function of demand
+
+### 3.: Paper demand
+
+Investing ahead of demand, often debt backed.
+
+Therefore demand for paper is partly a funciton for noncash financed investment
+
+Link to eg. chinese growth model.
+
+### 3.: Price dynamics
+
+Price will then be determined by the interaction of previous investment.
+
+And future demand.
+
+Where it need never clear.
+
+## Conclusion
+
+### 4.0: Supply = f(time) not f(price)
+
+...
+
+Investment function, how time and cash translates to capacity of a certain efficiency, is much more important than elasticity
+
+And subsumes it
+
+### 4.: Next steps
 
 Given the investment-time to future capacity surface.
 

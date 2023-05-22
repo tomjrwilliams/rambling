@@ -1,0 +1,133 @@
+
+## Earnings days and momentum
+
+Does excluding earnings days improve the performance of ewma(returns) trend following?
+
+Does it improve forward return prediction?
+
+What about reducing the time sampling rate of returns from days to hours?
+
+## Macro days and momentum
+
+Does excluding big macro data releases improve the performance of ewma(returns) trend following?
+
+Does it improve forward return prediction?
+
+What about reducing the time sampling rate of returns from days to hours?
+
+## Earnings days and auto correlation
+
+Does removing earnings days increase the backward auto correlation of returns?
+
+Does filtering to just earnings days increase the forward correlation of returns?
+
+Ie. how much better / worse do earnings days regress onto forward returns than the average day?
+
+## Macro days and auto correlation
+
+Does removing macro days increase the backward auto correlation of returns?
+
+Does filtering to just macro days increase the forward correlation of returns?
+
+Ie. how much better / worse do macro days regress onto forward returns than the average day?
+
+## Macro days
+
+In the above, is it more effective to define macro days as:
+
+Fixed set of important data releases? (But, only some important at certain times?)
+
+Moves over a certain threshold in above a certain threshold of certain macro assets?
+
+Correlation spikes? That becomes somewhat circular - although the correlation could be in macro assets, not single names?
+
+Some combination of the above?
+
+Ie. a data release, and a big subset move (but not just a big move alone).
+
+What about one-off events - war, say?
+
+## Correlation and momentum
+
+Does trend rank filtering increase the average correlation matrix of the residual universe?
+
+Does average correlation rank filtering of days, improve the performance of forward applied momentum?
+
+## Earnings and correlation
+
+Does excluding earnings days increase the average correlation of the remaining universe returns?
+
+To what extent are correlation drops aligned with earnings - when else do correlations drop across the board?
+
+To what extent does this need to be identified by intra day sampling - hourly data, say?
+
+## Macro and correlation
+
+Does excluding macro days reduce the average correlation of the remaining universe returns?
+
+To what extent are correlation spikes driven by macro events - what else causes such correlation spikes?
+
+To what extent does this need to be identified by intra day sampling - hourly data, say?
+
+## Vol and correlation
+
+To what extent does abs value correlation change the answer to the above (ie. if the direction ends up netting out)?
+
+Ie. the magnitude of move beyond average is correlated with it being earnings period (less corr) or macro (more corr), even if the sign is not consistent over time
+
+## Correlation momentum
+
+If you take the change in average correlation value in matrix over time, how are the changes distributed?
+
+Are there clusters of correlation change?
+
+Is there momentum to correlation changes (lots of gradual, correlated changes), or relatively sharp one off shifts?
+
+Are there any PC esque decompositions of the average changes? Vector of the triangle representation, or some further reduced form?
+
+How does the above analysis of one off shift vs gradual trend change if you exclude eg. macro days, earnings (eg. one off shift, but then back to prev corr, which then appears gradual once averaged backward)?
+
+
+
+
+
+Presumably on the above macro day recognition, is sector specific in terms of which event releases and which macro assets to use?
+
+
+
+If the trend is long correlation, there's an argument that it's less likely to be bet on as aggressively, assuming sector level beta neutralisation?
+
+Whereas if the trend is orthogonal to correlation, then it's cheaper in beta risk terms to follow it?
+
+Though that is to assume the marginal price setter is indeed beta neutral.
+
+Whereas there's clearly a sizable capital balance dedicated to non-neutral beta strategies.
+
+
+
+## Momentum and correlation
+
+Assume you run your trend rank, and your positions are such that
+
+Longs are backward correlated with longs, shorts with shorts, and neg corr between long and short
+
+You're effectively long backward correlation
+
+If you have a signal for where correlation is going to go - say, tomorrow is a big macro release, or earnings season
+
+That will influence whether you want to hold that portfolio
+
+
+Indeed, the question is particularly: is it an event that changes correlation matrices
+
+
+
+## Correlation
+
+Higher when, given one is away from mean, the other also is (in a consistent direction)
+
+If given one is higher, the other averages to zero - then will multiply through to zero
+
+And vice versa
+
+They both have, when in large absolute value, the other also is - and the sign of this is consistent (as otherwise, that's just a variance question, not a conditional variance)

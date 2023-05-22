@@ -1,0 +1,23 @@
+---
+title: "TBC"
+author: "Tom Williams"
+date: "TBC"
+categories: []
+draft: true
+---
+
+Rate * Volume
+
+Not a stock (customer count is closer to a stock)
+
+Decompose price elasticity along separate dimensions
+
+Volatility amongst either dimension
+
+Growth amonst either dimension
+
+
+
+GDP - either more people, roughly (or more people that consume out of income)
+
+Or increase the rate that people can - make the whole system run faster.

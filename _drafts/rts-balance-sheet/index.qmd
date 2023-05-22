@@ -1,0 +1,9 @@
+---
+title: "TBC"
+author: "Tom Williams"
+date: "TBC"
+categories: []
+draft: true
+---
+
+Brief piece on balance sheet return to scale from funding cost, diversification -> feedback loop into rts and consolidation

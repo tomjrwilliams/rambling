@@ -1,0 +1,90 @@
+
+
+Range of values of current period production is a function of capacity
+
+Side point: capacity can be generalised to even include previous marketing investment, r&d, shop distribution networks, as well as what probably immediately comes to mind in terms of factories
+
+Capacity is a function of sum over long term investment, net of depreciation
+
+For instance, case of semis, multi year projects, huge proportion of cash flow invested over time
+
+
+
+That means each period, have to make a decision on how much to add to current capacity
+
+
+But, not a nice instantaneous derivative like function
+
+Capacity is in discrete units often, a kind of step function in time and cash, vs available capacity
+
+
+That is in 4D space: max capacity, current capacity, versus cum time, versus cum investment
+
+
+Where the location of the kinks will be parametrised by how quickly one can productively deploy capital in that industry
+
+So 5D even, where that rate of efficient investment determines the trade off between bringing a kink in in time terms for the same capacity, and having to have spent more to get there in cash terms
+
+
+
+So have to make that decision with a path in mind for the future price quantity surface of the good you sell
+
+As you can't evaluate it instantaneously, because the derviative might be nearly zero at this point
+
+Only over that whole step curve is it possible
+
+
+So in current period, have to assume a given price quantity path
+
+
+But also, in current period, capacity is essentially fixed
+
+With incremental production range of possible values, given
+
+With an efficiency function against utilistion, but it's not at all an unconstrained mc curve
+
+
+That mc curve is really a marginal proportion of input factors
+
+It's an mc curve given the instantaneous prices of those other goods
+
+As to a large extent their prices are instantaneously fixed
+
+With a slight allowance for bulk purchasing, though that then makes it a medium term decision
+
+
+So in the short term, we can basically just move pricing
+
+Which changes demand out flow
+
+
+Medium term we can adjust production, but only within the range of values given by our previous capacity decisions - so quite a constrained decision
+
+
+
+
+That's where i'd get frustrated - the mc curve is only partly defined, outside of the capacity range is just not possible at a given time
+
+So there's two stages of decisions: price & inventory management (production within the capcity bounds)
+
+And long term investment in capacity
+
+
+
+Where one has to hold a price quantity surface constant to make that second
+
+Whereas capacity etc. is predetermined when making the price and bounded production decision
+
+
+
+So for instance, assume a huge temporary demand increase, might make a bunch of inefficient but fast investment to meet
+
+Or might just hike prices if don't expect to last
+
+
+Which of the two can only be determined by the above functions of possible investment speed
+
+But also a full expected path of price / demand
+
+
+If demand isn't expected to persist, investment in capacity won't be made - we'll just have higher prices (temporarily, but might persist because of lack of investment)

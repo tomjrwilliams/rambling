@@ -1,0 +1,69 @@
+---
+title: "Investment"
+author: "Tom Williams"
+date: "2022-12-30"
+categories: []
+draft: true
+---
+
+
+
+
+Can have another post where we also assume that there's a negative churn to not fulfilling order
+
+How that changes, want to be less likely to be out of inventory
+
+
+Where we can reframe the above in terms of the supply curve, ie. in terms of picking a capital base level that yields a certain noisy amount of new inventory per period, depreciation etc.:
+
+```{python}
+def investment_curve(quantity):
+    return
+
+## graph of price for different quantities
+```
+
+Sample:
+
+```{python}
+def investment_sample(investment):
+    return
+
+## graph of price for different quantities
+```
+
+
+## Next steps
+
+The challenge with investment is:
+
+- financing long term spending short term
+
+- allocating in the face of uncertain demand
+
+The section is the key one.
+
+So we then say, we can choose to spend to sample an additional area of demand space, an additional block of demand.
+
+And then we're looking to plot the profit distribution over time.
+
+Where the goal is to show that over-investment is almost a necessary part of testing out the edges of the market, before consolidating back in.
+
+
+## Next steps
+
+Thus far we're picking a single level of investment, or inventory reset, inventory change - ie. no adaption over time.
+
+So next step is assume variation over time in eg. demand function, and how one changes inventory accumulation policy.
+
+As a function of changing short term observed demand.
+
+## Next steps
+
+Can then look at building in debt.
+
+Can then look at several firms, consolidation dynamics during the over reach.
+
+Separately look at the balance sheet space approach to bank loans. New lending, quantity as well as rates. The innate cyclicality this introduces.
+
+Can then look at having several industries, same at a meta level. Aggregate price change?

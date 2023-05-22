@@ -3,7 +3,7 @@ title: "Demand (Corporate): f(capacity, demand) not f(price)"
 author: "Tom Williams"
 date: "2023-03-04"
 categories: []
-draft: false
+draft: true
 ---
 
 Consumer demand as either like corporate.

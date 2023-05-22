@@ -1,0 +1,131 @@
+---
+title: "TBC"
+author: "Tom Williams"
+date: "TBC"
+categories: []
+draft: true
+---
+
+This is a verbal sketch of what (I hope) will one day turn into a calibratable model of bank lending cycles.
+
+## Firm
+
+My personal model of a firm is of a group of people operating a particular capital base, accumulated and maintained over time, to receive inventory from suppliers and disburse it to customers.
+
+Here capital is defined much more broadly than just what would be included in long term assets on a balance sheet: I'd also capitalise in r&d, marketing, operational procedures, and so on.
+
+## Bank
+
+A bank, for instance, consists of a network of branches, technology, and staff able to coordinate the receipt and distribution of balance sheet capacity: cash, to various degrees of approximation.
+
+Lending procedures would, as accumulated and maintained over time, count as capital.
+
+## Assets and liabilities
+
+Cash to a consumer, is a callable on-demand liability on a bank.
+
+During the day, transfers within a bank, re-arrange the distribution amongst accounts.
+
+Between banks, transfer in increases that banks liabilities - now you have a callable claim on Bank B.
+
+Bank A has to reduce assets (or increase leverage), B increase assets.
+
+A increase liab to B (to keep assets flat), B assets on A (balance liab to customer).
+
+Daily cash sweep, either central bank or exchange of securities.
+
+## Bond
+
+Asset increase by bond, liab to customer cash value. Vice versa on customer.
+
+Spend it all at once - see above. Liab to other banks.
+
+Over time, liab reduced on other banks, as customer pays interest, and then eventually principle.
+
+## PV and default
+
+Discount cash flows.
+
+And then adjust for probability of default.
+
+A higher probability loan will be charged a higher rate to compensate.
+
+## Default cycle
+
+PV reduced on asset side as write down.
+
+But still have the liabilities.
+
+Can raise rates, but won't necessarily effect existing loans, or reduce new loan (raise lending standards).
+
+Rates also a fairly defined range of possible spreads over CB rate.
+
+Shorten term approvals.
+
+## Recovery 
+
+PV increased on asset side as loans de-default.
+
+Accumulate claims on other participants.
+
+Can reduce lending standards, approve more loans.
+
+Longer term loan approvals.
+
+## Model
+
+Each period, sample from a population of borrowers - could be a single float to start with.
+
+Given sample, acceptance function from the bank - varying probability density on the borrower float.
+
+Given float, get a prob -> sample acceptance given prob.
+
+If accepted, make loan.
+
+Step loan portfolio forward, as a function of stepping forward economic condition of borrowers (say, correlated random walks).
+
+Acceptance a function of both bank overall loan portfolio position, and given borrower sample.
+
+Ie. acceptance density is parametrised by loan book strength.
+
+## Acceptance
+
+Could be, eg. parametrise bank lending with a gaussian mean
+
+And then the borrower is a gaussian mean
+
+And then the acceptance prob is of sample(borrower) > sample(lending_standard)
+
+## Price
+
+If accumulating more loans, can also raise rates.
+
+Vice versa to reduce.
+
+But this is assuming supply / demand for balance sheet - where's the elasticity here?
+
+## Motivation?
+
+Is the goal of this to eventually have a model of which constraints are binding and when?
+
+Interesting idea to move from asset allocation at a given credit rating, to rates as then then supply / demand impact of that supply change.
+
+Versus price as the control variable, its allocation.
+
+Is there a way of combining the allocation distribution model with the acceptance model?
+
+Two curves - how much they have allocated vs credit rating, how much they want. Two surfaces - also in time.
+
+Each loan application is a 2 vector - term and credit.
+
+Acceptance at a given point a function of the delta between the two?
+
+3d vector - the size of the loan (so the prob is then I guess based on where it would take the current alloc to, versus the target, not just current level).
+
+So supply vs intended supply does prob acceptance: therefore demand leads to price.
+
+Ie. if that divergence starts to grow, spreads will change.
+
+The question eg. if econ shock - is that demand will also move with demand for certain credit rating.
+
+Rates are also external in a central bank sense - the above pricing is on spreads.
