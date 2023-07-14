@@ -1,0 +1,20 @@
+---
+title: "Capacity"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: true
+---
+
+Attempt to propose a functional form for capacity investment
+
+
+And / or perhaps with simple toy models to illustrate, eg., how the backward supply based on forward demand can lead to cycles
+
+Funding drop limiting investment
+
+Tax changes only leading to disbursement if not demand
+
+
+
+Though perhaps as separate support posts

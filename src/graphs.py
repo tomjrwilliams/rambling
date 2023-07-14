@@ -62,6 +62,20 @@ def scatter_graph(ax, xs, ys, *args, hlines = [], vlines = [], **kwargs):
     if len(vlines):
         add_vlines(ax, ys, vlines)
 
+def dot_graph(ax, ys, *args, hlines = [], vlines = [], **kwargs):
+    ax.plot(ys, **kwargs)
+    if len(hlines):
+        add_hlines(ax, xs, hlines)
+    if len(vlines):
+        add_vlines(ax, ys, vlines)
+
+def hist_graph(ax, ys, *args, hlines = [], vlines = [], **kwargs):
+    ax.hist(ys, **kwargs)
+    if len(hlines):
+        add_hlines(ax, xs, hlines)
+    if len(vlines):
+        add_vlines(ax, ys, vlines)
+
 def render_graphs(graphs, height = 1.5, width = 8, with_legend = True):
     if isinstance(graphs[0], dict):
         return render_graph_rows(

@@ -1,0 +1,276 @@
+---
+title: "Wiggles be gone"
+author: "Tom Williams"
+date: "2023-03-04"
+categories: []
+draft: false
+---
+
+A few times recently, I've found myself in need of a differentiable loss function that can be used to smooth out a given time series.
+
+Rather than doing the reading (hah!), this post is me playing around from first principles with a few different ways of specifying such a function.
+
+## Motivation
+
+Let's say that I'm fitting some kind of factor model via gradient descent, in which some high dimensional time series is decomposed into a lower dimensional time series of factor 'paths', and a function for mapping back up to the higher dimensional space.
+
+Let's also assume that we intend the extracted factor paths to be meaningfully interpretible - presumably capturing some underlying structure that we're interested in within the world.
+
+In such a scenario, one reasonable constraint that we might want to impose is that the factors change value only gradually - for instance, that they don't rapidly oscillate to and fro, or sharply jump from one level to another.
+
+Given that we're using gradient descent, to enforce this, we can simply include an additional term into our loss function: one that, when minimised, pushes a given time series towards the shape that we want.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Setup"
+import sys
+sys.path.append("C:/rambling")
+
+import importlib
+import functools
+import torch
+
+from src import inspect
+from src import transforms
+from src import graphs
+from src import optim
+from src import tensors
+from src import constraints
+from src import walks
+
+importlib.reload(graphs)
+importlib.reload(transforms)
+importlib.reload(inspect)
+importlib.reload(optim)
+importlib.reload(tensors)
+importlib.reload(constraints)
+importlib.reload(walks)
+
+DROPOUT = {}
+
+```
+
+## Problem Statement
+
+The first step is clarifying what we want our solution to a look like.
+
+Roughly speaking, a 'smooth' time series is one without abrupt changes in value, steadily moving in one direction or another.
+
+One way to cheat, given such a definition, would be to flatten the time series completely.
+
+This would, however, render our function useless as a constraint for the path of a factor (which we're presumably expecting to vary over time).
+
+So, we want to not just flatten out any sharp changes, but to also do so without distorting the underlying time series beyond recognition.
+
+To be clear, we're not quite looking for a function that can smooth a given *fixed* time series directly - like a moving average.
+
+Rather, we're looking for a function that can constrain a given *varying*
+time series to always *look* something like a moving average, when also operated on by some other fitting procedure (s).
+
+## Methodology
+
+One simple way to test our solution, would thus be to:
+
+- Generate a set of test time series', eg. random gaussian walks.
+- Re-fit the time series', by gradient descent on our loss function.
+- Plot the before and after side by side, and evaluate by eye.
+
+Obviously eyeballing the two lines is, in some sense, a little 'unsystematic'.
+
+On the other hand, the human eye can catch a lot of detail than summary statistics might miss.
+
+Further, a metric that fully captured the quality of fit produced by our loss function, would essentially be just to define the very function we're seeking.
+
+## Test case
+
+For instance, let's define a function to generate a random gaussian walk:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Gaussian walk"
+inspect.render_source(tensors.gaussian_walk)
+```
+
+Which produces time series like the below:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Gaussian walk examples"
+ts = tensors.gaussian_walk([5, 100], 0., 1.)
+graphs.render_graphs([
+    dict(
+        f=graphs.line_graph,
+        kwargs=dict(
+            xs=list(range(ts.shape[1])),
+            ys=ts[i].tolist(),
+            label="path",
+        ),
+    )
+    for i in range(ts.shape[0])
+])
+```
+
+We can then feed this into a garden variety gradient descent optimiser together with our candidate loss function, before plotting:
+
+- the path of our loss function.
+- the original random walk.
+- the fitted result.
+
+With the code here omitted for brevity - you can find it in /src/walks.py.
+
+## Rolling mean delta
+
+The above reference to a moving average naturally suggests our first candidate loss function: the average difference between the time series, and it's own moving average.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rolling mean delta loss"
+inspect.render_source(constraints.smooth_ts_rolling_mean)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rolling mean delta examples: n = 5"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = functools.partial(
+        constraints.smooth_ts_rolling_mean,
+        ns=[5],
+    ),
+)
+```
+
+Generally, the shape and location of the input series seem to be mostly conserved, though the scale might be being compressed slightly.
+
+The choice of window size gives us a toggle for controlling how aggressively we want to smooth. 
+
+For instance, compare rolling windows of length ten (double the above):
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rolling mean delta examples: n = 10"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = functools.partial(
+        constraints.smooth_ts_rolling_mean,
+        ns=[10],
+    ),
+)
+```
+
+Versus length two:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Rolling mean delta examples: n = 2"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = functools.partial(
+        constraints.smooth_ts_rolling_mean,
+        ns=[2],
+    ),
+)
+```
+
+Overall, this seems like a pretty reasonable first pass.
+
+## Coast line
+
+Another route might be to focus in on the periods of oscillation in the random walk.
+
+In such periods, the gross length of the walk is much larger than the net length (whereas the two would be much closer on a 'smooth' walk).
+
+We might then construct a loss function as the difference between the two:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Coast line loss"
+inspect.render_source(constraints.smooth_ts_rolling_coastline)
+```
+
+Which we can test as before:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Coast line examples: n = 5"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = functools.partial(
+        constraints.smooth_ts_rolling_coastline,
+        ns=[5],
+    ),
+)
+```
+
+This also gives us pretty reasonable results. The overall shape and location seem to be mostly conserved, though the scale is arguably being compressed slightly more.
+
+One key difference is that turning points are being flattened out - so we get something a little closer to a smoothed step function.
+
+We can see this a little more clearly with a longer window length:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Coast line examples: n = 20"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = functools.partial(
+        constraints.smooth_ts_rolling_coastline,
+        ns=[20],
+    ),
+)
+```
+
+Though we'd be unlikely to use a window this wide in practise, given the distorting effect it has on the underlying walk's shape.
+
+## Second derivative
+
+One final option I considered was simply to push the second derivative of the series towards zero.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Second derivative loss"
+inspect.render_source(constraints.smooth_ts_2nd_derivative)
+```
+
+Which was unreasonably effective, given its (almost brutal) simplicity:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Second derivative examples"
+walks.plot_constrained_walks(
+    n=5,
+    f_walk = functools.partial(
+        tensors.gaussian_walk, [100], 0., 1.
+    ),
+    f_loss = constraints.smooth_ts_2nd_derivative
+)
+```
+
+Though with the clear drawback of lacking any kind of parametrisation for how aggressively we want to smooth.
+
+## Conclusion
+
+Either of the first and third seem reasonable solutions to the problem as posed. 
+
+The second is interesting, though probably only relevant in cases where the underlying factor is assumed to move in such a step-like manner.
+
+The parametrisability of the first is obviously a plus - though the third arguably balances smoothness and shape preservation slightly better.
+
+I think, unless I wanted to deliberately enforce a slower or faster velocity to the factor path, I would probably pick the third - but as this is based pretty much just on aesthetics, I'd say each to their own.
+
+I'll have a go in a future post, at actually using each of the above to constrain the results of some other fitting procedure.
