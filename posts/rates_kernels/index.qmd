@@ -1,0 +1,10 @@
+
+
+intuition on how instead of discrete weight vectors
+
+that tend to come out with certain shapes
+
+
+we can instead parametrise a curve to have that shape
+
+given eg. representation of the tenor (float - or, via the unit dv01)

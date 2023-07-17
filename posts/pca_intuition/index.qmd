@@ -1,0 +1,14 @@
+
+
+intuition on how
+
+
+given the linear reg - covariance intuiino
+
+and orthogonality
+
+
+
+we can build up to pca as orthogonal beta decomp 
+
+over gaussian factors
