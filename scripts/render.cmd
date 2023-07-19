@@ -1,1 +1,1 @@
-quarto render
+quarto render %1 && python .\scripts\add_plotly.py %1

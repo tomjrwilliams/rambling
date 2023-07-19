@@ -1,0 +1,79 @@
+
+## PCA
+
+Weight matrix are orthogonal to one another
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+
+```
+
+If we fit a gaussian kernel to the factors:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_factor_density(d_start, d_end, n):
+    pca, df = fit_pca(d_start, d_end, n)
+    factors = pca.encode(df)
+    return densities.gaussian_kde_1d_df(
+        {
+            i: factors.real[..., i]
+            for i in range(n)
+        }, 
+        clip_quantile=.01
+    )
+```
+
+We can see that they're (roughly) gaussian distributed:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_factor_density_chart(d_start, d_end, n):
+    return graphs.df_chart(
+        pca_factor_density(d_start, d_end, n),
+        x="position",
+        y="density",
+        color="key",
+        title="Factor Density (0.01 Clip)"
+    )
+pca_factor_density_chart(dates.y(2022), dates.y(2023), n=3)
+```
+
+Given the eignvalues:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_eigvals(d_start, d_end, n):
+    pca, _ = fit_pca(d_start, d_end, n)
+    return pca.eigvals.real
+```
+
+Plot, seeigenvalues are ranked, which act as scaling factors on those gaussians:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_eigvals_chart(d_start, d_end, n):
+    eigvals = pca_eigvals(d_start, d_end, n)
+    return graphs.df_bar_chart(
+        pandas.DataFrame({
+            "factor_{}".format(i): [v]
+            for i, v in enumerate(eigvals)
+        }).melt(),
+        x="variable",
+        y="value",
+    )
+pca_eigvals_chart(dates.y(2022), dates.y(2023), n=3)
+```
+
+So what we have is:
+
+- gaussian independnet factors
+- mapped via a set of implied betas to our returns
+- orthongal means we can transpoe to invert, to go returns to factors
+
+This is versus SVD where we have two matrices: one to encode and one to decode

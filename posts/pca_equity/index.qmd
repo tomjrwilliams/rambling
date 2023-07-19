@@ -4,6 +4,8 @@ author: "Tom Williams"
 date: "2023-07-17"
 categories: []
 draft: false
+execute:
+  daemon: false
 ---
 
 I'm currently working on open-sourcing some of the factor decomposition utilities that I use in my day-job.
@@ -19,60 +21,123 @@ import os
 import sys
 import importlib
 sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/hc-core/src")
+sys.path.append("C:/hc/xfactors/src/xfactors")
+sys.path.append("C:/hc/xtuples/src/xtuples")
 os.environ["MODULE"] = "c:/hc/src/"
 ```
 
 ```{python}
 #| code-fold: true
-#| code-summary: "Imports - stdlib"
+#| code-summary: "Imports"
 import datetime
 import functools
 import itertools
+
 import numpy
 import pandas
 import jax
-```
+import jax.numpy
 
-```{python}
-#| code-fold: true
-#| code-summary: "Imports - factors"
-import core
-importlib.reload(core)
+import xtuples
+import xfactors
+
+import hc_core.imports as imports
+import hc_core.rendering as rendering
+import hc_core.dfs as dfs
+import hc_core.densities as densities
+import hc_core.graphs as graphs
+import hc_core.dates as dates
+
 import bt.data.prices.int
-core.import_from_file("xtuples", "C:/hc/xtuples/src/xtuples/__init__.py")
-core.import_from_file("xtenors", "C:/hc/xtenors/src/xtenors/__init__.py")
-core.import_from_file("xfactors", "C:/hc/xfactors/src/xfactors/__init__.py")
+import bt.algos.universe.int
+
+graphs.set_rendering(graphs.HTML)
 ```
 
-##  Data
+## Data
 
-Our universe will be constituents of major european national equity indices
+We'll work on daily close to close total returns, on a universe of major european equity indices:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "Data"
-date_start = datetime.date(2005, 1, 1)
-date_end = datetime.date(2023, 4, 1)
-df_universe = ...
 df_returns = bt.data.prices.int.returns_df(
-    date_start,
-    date_end,
-    indices=core.Array(["SX5E Index"]),
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
 ) 
 ```
 
-Which we'll filter to subset of our universe (those not added or removed from index in period)
+The returns are from bloomberg including all cash adjustments (even if in rpodcution we actually have a separate internal ticker for dividend stream from a given name).
+
+Vanilla pca doesn't accomodate missing data, so given a particular date range of interest, we'll filter to only those tickers over a certain proportion within relevant equity indices.
+
+First we'll load the relevant index membership mapping tables:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "Data"
-def get_universe_returns():
-    return
+dfs_indices = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+)
+df_universe = bt.algos.universe.int.index_union(dfs_indices)
+```
+
+With which we'll only include those oer a certain proportion of index membership in our date range:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+def in_universe(ticker, df, threshold):
+    if ticker not in df.columns:
+        return False
+    return (
+        df[ticker].sum() / len(df.index)
+    ) >= threshold
+```
+
+As so:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+def get_universe_returns( d_start, d_end, threshold=1.):
+    tickers = xtuples.iTuple(df_returns.columns).filter(
+        in_universe,
+        df=dfs.index_date_filter(df_universe, d_start, d_end),
+        threshold=threshold,
+    ).pipe(list) 
+    return dfs.index_date_filter(
+        df_returns, d_start, d_end
+    )[tickers].dropna()
+```
+
+For instance, looking at 2022:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+get_universe_returns(dates.y(2022), dates.y(2023)).columns
+```
+
+We'll also loads a GICS sector mapping as this will be useful later:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_sectors = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    sectors=bt.algos.universe.configs.GICS_SECTORS,
+)
 ```
 
 ## Model
 
-Take matrix of (n_tickers, n_dates)
+PCA takes a matrix of (n_tickers, n_dates)
 
 Returns
 
@@ -80,98 +145,274 @@ Weight matrix of (n_tickers, n_factors)
 Eigenvalues (n_factors)
 Factors (n_factors, n_dates)
 
+Where it does this by eigendecomposition of the covariance matrix of the input data, as so:
+
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "PCA"
-
+rendering.render_source(xfactors.PCA.fit, cls_method=True)
 ```
 
-Where mat mul: (re-compose)
+Which xfactors can do as follows (wrapped with an lru cache so we can dynamically call for the pca given dates, but without recalc each time):
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "PCA"
-
+@functools.lru_cache(maxsize=10)
+def fit_pca(d_start, d_end, n):
+    df = get_universe_returns(d_start, d_end)
+    return xfactors.PCA.fit(df, n = n), df
+_ = fit_pca(dates.y(2022), dates.y(2023), n=3)
 ```
 
-This is why we first filtered, doesn't take nan, tickers are columns so has to be fixed.
-
-Model the factors as gaussian draws
+Plotting the resulting factor weights:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
-
+def pca_weights(d_start, d_end, n):
+    pca, _ = fit_pca(d_start, d_end, n)
+    return pca.weights_df()
+pca_weights(dates.y(2022), dates.y(2023), n=3)
 ```
 
-Scaled up by the eigenvalue
+^^ summary not the whole df
+
+Given a helper function for plotting bars:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
-
+def factor_bar_chart(weights):
+    n = len(weights.index)
+    return graphs.df_facet_bar_chart(
+        dfs.melt_with_index(weights, index_as="factor"),
+        x="variable",
+        y="value",
+        facet="factor",
+    )
 ```
 
-And the weight matrix are orthogonal to one another
+We cna plot the weihts:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
-
+def pca_weights_chart(d_start, d_end, n):
+    weights = pca_weights(d_start, d_end, n)
+    return factor_bar_chart(weights)
+pca_weights_chart(dates.y(2022), dates.y(2023), n=3)
 ```
 
-## Results
+Given the factors, can reconstitute the originalr eturns with:
 
-log transform?
+below plot a couple of reconstituted (partial)
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_pred(d_start, d_end, n):
+    pca, df = fit_pca(d_start, d_end, n)
+    factors = pca.encode(df)
+    return pandas.DataFrame(
+        pca.decode(factors),
+        columns=pca.columns,
+        index=df.index,
+    )
+pca_pred(dates.y(2022), dates.y(2023), n=3)
+```
+
 
 The factors themselves are composite portfolios, and the return attributable to that factor that date.
 
-Interpreting however, is a little difficult, very large weight vector:
+Lossy reconstruction based effectively on a beta to those market portfolios
 
-```{python}
-#| code-fold: true
-#| code-summary: ""
+pca pred scatter (ie. to show the slippage?)
 
-```
+
+## Sectors
+
+Interpreting is a little difficult - as we can see above, very large weight vector.
 
 We could try re-weighting back against industries.
 
-For instance, normalise and then sum weight per industry from ticker:
+For instance, given a function to map from a ticker to a sector sector:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
-
+def sector_tickers(d_start, d_end, n):
+    pca, _ = fit_pca(d_start, d_end, n)
+    return {
+        s: pca.columns.filter(
+            in_universe, df = dfs_sectors[s], threshold=1.
+        ) for is in bt.algos.universe.configs.GICS_SECTORS
+    }
 ```
 
 But, some industries are overrpresented (below is proportion of universe per industry)
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
+def sector_map_chart(d_start, d_end, n):
+    sector_map = sector_tickers(d_start, d_end, n)
+    return graphs.df_bar_chart(
+        pandas.DataFrame({
+            s: [len(v)] for s, v in sector_map.items()
+        }).melt(),
+        x="variable",
+        y="value",
+    )
+sector_map_chart(dates.y(2022), dates.y(2023), n=3)
+```
 
+GICS denominator:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_sector_weights(d_start, d_end, n):
+    sector_map = sector_tickers(d_start, d_end, n)
+    weights = pca_sector_weights(d_start, d_end, n)
+    sector_w = {
+        s: 1 / (len(ts) / len(weights.columns))
+        for s, ts in sector_map.items()
+    }
+    return pandas.DataFrame({
+        s: weights[s] * sector_w[s]
+        for s in weights.columns
+    })
 ```
 
 So have to divide by the proportion in the whole:
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: ""
+def pca_sector_weights_chart(d_start, d_end, n):
+    sector_weights = pca_sector_weights(d_start, d_end, n)
+    return factor_bar_chart(sector_weights)
+pca_sector_weights_chart(dates.y(2022), dates.y(2023), n=3)
+```
 
+## Index
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def index_tickers(d_start, d_end, n):
+    pca, _ = fit_pca(d_start, d_end, n)
+    res = {
+        i: pca.columns.filter(
+            in_universe, df = dfs_indices[i], threshold=1.
+        ) for i in bt.algos.universe.configs.INDICES
+    }
+    return res
 ```
 
 same by country
 
+But, some are overrpresented (below is proportion of universe per industry)
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def index_map_chart(d_start, d_end, n):
+    index_map = index_tickers(d_start, d_end, n)
+    return graphs.df_bar_chart(
+        pandas.DataFrame({
+            i: [len(v)] for i, v in index_map.items()
+        }).melt(),
+        x="variable",
+        y="value",
+    )
+index_map_chart(dates.y(2022), dates.y(2023), n=3)
+```
+
+GICS denominator:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_index_weights(d_start, d_end, n):
+    index_map = index_tickers(d_start, d_end, n)
+    weights = pca_index_weights(d_start, d_end, n)
+    index_w = {
+        i: 1 / (len(ts) / len(weights.columns))
+        for i, ts in index_map.items()
+        if len(ts)
+    }
+    return pandas.DataFrame({
+        i: weights[i] * index_w[i]
+        for i in weights.columns
+        if i in index_w
+    })
+```
+
+So have to divide by the proportion in the whole:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_index_weights_chart(d_start, d_end, n):
+    index_weights = pca_index_weights(d_start, d_end, n)
+    return factor_bar_chart(index_weights)
+pca_index_weights_chart(dates.y(2022), dates.y(2023), n=3)
+```
+
 ## Interpretation
 
-We can see ..
+We can see that it did pick out ...
 
 Re run for other interesting time periods to show how most improtant driver changes over time
 
-However, not so useful because
+```{python}
+#| code-fold: false
+#| code-summary: ""
+pca_sector_weights_chart(dates.y(2020), dates.y(2022), n=3)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+pca_sector_weights_chart(dates.y(2007), dates.y(2010), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+pca_sector_weights_chart(dates.y(2014), dates.y(2016), n=3)
+```
+ 
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+pca_index_weights_chart(dates.y(2014), dates.y(2016), n=3)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+pca_index_weights_chart(dates.y(2010), dates.y(2013), n=3)
+```
+
+## Limitations
+
+However, as we can see above - the weights aren't necessarily meaningful
+
+Depending on the year, they can then be manually interpreted - as we saw above
+
+But only where such struccture happens to be orthogonal variance maximising
+
+Simply picks out the dimensions of maximum spreading (after adjusting for previous such dimensions)
+
+Also, can't account for missing data (would need to null fill, for instance)
 
 ## Next Steps
 
-Robust pca (gradient descent)
+We'll deal with the second, first, with ppca - and a robust extension
 
-Then, stepping stone onto instrumented weights on one-hot industry
+Before then looking at instrumenting our weights, which allows us to deal with the second.
