@@ -1,0 +1,9 @@
+---
+title: "Example: PPCA, Instrumented Weights, Equity Returns"
+author: "Tom Williams"
+date: "2023-07-17"
+categories: []
+draft: false
+---
+
+Fundamentals

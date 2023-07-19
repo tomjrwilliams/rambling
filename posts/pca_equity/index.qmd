@@ -91,12 +91,7 @@ With which we'll only include those oer a certain proportion of index membership
 ```{python}
 #| code-fold: false
 #| code-summary: "Universe"
-def in_universe(ticker, df, threshold):
-    if ticker not in df.columns:
-        return False
-    return (
-        df[ticker].sum() / len(df.index)
-    ) >= threshold
+equity.in_universe
 ```
 
 As so:
@@ -104,7 +99,7 @@ As so:
 ```{python}
 #| code-fold: false
 #| code-summary: "Universe"
-def get_universe_returns( d_start, d_end, threshold=1.):
+def get_returns( d_start, d_end, threshold=1.):
     tickers = xtuples.iTuple(df_returns.columns).filter(
         in_universe,
         df=dfs.index_date_filter(df_universe, d_start, d_end),
@@ -120,7 +115,7 @@ For instance, looking at 2022:
 ```{python}
 #| code-fold: false
 #| code-summary: "PCA"
-get_universe_returns(dates.y(2022), dates.y(2023)).columns
+get_returns(dates.y(2022), dates.y(2023)).columns
 ```
 
 We'll also loads a GICS sector mapping as this will be useful later:
@@ -160,10 +155,12 @@ Which xfactors can do as follows (wrapped with an lru cache so we can dynamicall
 #| code-summary: "PCA"
 @functools.lru_cache(maxsize=10)
 def fit_pca(d_start, d_end, n):
-    df = get_universe_returns(d_start, d_end)
+    df = get_returns(d_start, d_end)
     return xfactors.PCA.fit(df, n = n), df
 _ = fit_pca(dates.y(2022), dates.y(2023), n=3)
 ```
+
+## Results
 
 Plotting the resulting factor weights:
 
@@ -204,9 +201,11 @@ def pca_weights_chart(d_start, d_end, n):
 pca_weights_chart(dates.y(2022), dates.y(2023), n=3)
 ```
 
-Given the factors, can reconstitute the originalr eturns with:
+The weights can be interprted as loadings in factor portfolios
 
-below plot a couple of reconstituted (partial)
+The factor series themselves then being the returns of a portfolio with those loadings
+
+Given the factors, can reconstitute the originalr eturns with:
 
 ```{python}
 #| code-fold: false
@@ -222,13 +221,18 @@ def pca_pred(d_start, d_end, n):
 pca_pred(dates.y(2022), dates.y(2023), n=3)
 ```
 
+That is to say, they're both loadings, and when transposed (which is inversion as orthogonal), betas back up from the factor returns to the ticker return
 
-The factors themselves are composite portfolios, and the return attributable to that factor that date.
+But a lossy reconstruction if we only select n < len(tickers) factors
 
-Lossy reconstruction based effectively on a beta to those market portfolios
+```{python}
+#| code-fold: false
+#| code-summary: ""
+```
 
-pca pred scatter (ie. to show the slippage?)
+Can see in above scatter / hist whatever
 
+could even plot the mse as a function of n_factors (declining presumably)
 
 ## Sectors
 
@@ -241,13 +245,7 @@ For instance, given a function to map from a ticker to a sector sector:
 ```{python}
 #| code-fold: false
 #| code-summary: ""
-def sector_tickers(d_start, d_end, n):
-    pca, _ = fit_pca(d_start, d_end, n)
-    return {
-        s: pca.columns.filter(
-            in_universe, df = dfs_sectors[s], threshold=1.
-        ) for is in bt.algos.universe.configs.GICS_SECTORS
-    }
+equity.sector_tickers
 ```
 
 But, some industries are overrpresented (below is proportion of universe per industry)
@@ -296,19 +294,12 @@ def pca_sector_weights_chart(d_start, d_end, n):
 pca_sector_weights_chart(dates.y(2022), dates.y(2023), n=3)
 ```
 
-## Index
+## Indices
 
 ```{python}
 #| code-fold: false
 #| code-summary: ""
-def index_tickers(d_start, d_end, n):
-    pca, _ = fit_pca(d_start, d_end, n)
-    res = {
-        i: pca.columns.filter(
-            in_universe, df = dfs_indices[i], threshold=1.
-        ) for i in bt.algos.universe.configs.INDICES
-    }
-    return res
+equity.index_tickers
 ```
 
 same by country
@@ -363,9 +354,9 @@ pca_index_weights_chart(dates.y(2022), dates.y(2023), n=3)
 
 ## Interpretation
 
-We can see that it did pick out ...
+We can see that it did pick out ... during 2022
 
-Re run for other interesting time periods to show how most improtant driver changes over time
+If we run over the covid period, we can see ...
 
 ```{python}
 #| code-fold: false
@@ -373,12 +364,15 @@ Re run for other interesting time periods to show how most improtant driver chan
 pca_sector_weights_chart(dates.y(2020), dates.y(2022), n=3)
 ```
 
+For instance, can see fnancials GC
+
 ```{python}
 #| code-fold: false
 #| code-summary: ""
 pca_sector_weights_chart(dates.y(2007), dates.y(2010), n=3)
 ```
 
+We can see the energy criss 2015
 
 ```{python}
 #| code-fold: false
@@ -386,12 +380,15 @@ pca_sector_weights_chart(dates.y(2007), dates.y(2010), n=3)
 pca_sector_weights_chart(dates.y(2014), dates.y(2016), n=3)
 ```
  
+Also visible in the norway weighting for the same period:
 
 ```{python}
 #| code-fold: false
 #| code-summary: ""
 pca_index_weights_chart(dates.y(2014), dates.y(2016), n=3)
 ```
+
+Whereas we can see the financials / periphery (spain and portgual) for the euro crisis:
 
 ```{python}
 #| code-fold: false
@@ -413,6 +410,6 @@ Also, can't account for missing data (would need to null fill, for instance)
 
 ## Next Steps
 
-We'll deal with the second, first, with ppca - and a robust extension
+We'll deal with the second, first, with ppca - a gradient based variatn of the above which is robust to missing data.
 
 Before then looking at instrumenting our weights, which allows us to deal with the second.

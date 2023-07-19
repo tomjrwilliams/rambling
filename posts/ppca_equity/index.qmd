@@ -4,4 +4,268 @@ author: "Tom Williams"
 date: "2023-07-17"
 categories: []
 draft: false
+execute:
+  daemon: false
 ---
+
+This is the second post in a series of examples I'm writing for the factor decomposition library xfactors, that I'm currently in the process of open-sourcing.
+
+Here, we'll run PPCA on daily equity returns, demonstrating handle missing data, recover the same factors as standard pca.
+
+## Setup
+
+```{python}
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/hc-core/src")
+sys.path.append("C:/hc/xfactors/src/xfactors")
+sys.path.append("C:/hc/xtuples/src/xtuples")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Imports"
+import datetime
+import functools
+import itertools
+
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples
+import xfactors
+
+import hc_core.imports as imports
+import hc_core.rendering as rendering
+import hc_core.dfs as dfs
+import hc_core.densities as densities
+import hc_core.graphs as graphs
+import hc_core.dates as dates
+
+import bt.data.prices.int
+import bt.algos.universe.int
+
+graphs.set_rendering(graphs.HTML)
+```
+
+## Data
+
+As before, work on daily close to close total returns, on a universe of major european equity indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+df_returns = bt.data.prices.int.returns_df(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+) 
+```
+
+We don't need to worry about missing data this time, so no need for a universe filtering functon, though we will define a simple date filtering wrapper function:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+def get_returns(d_start, d_end):
+    return dfs.index_date_filter(df_returns, d_start, d_end)
+```
+
+We will, however, still need the index and sector data for aggregating up the weights into more interpretible buckets.
+
+First, the indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_indices = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+)
+df_universe = bt.algos.universe.int.index_union(dfs_indices)
+```
+
+Then the sectors:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_sectors = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    sectors=bt.algos.universe.configs.GICS_SECTORS,
+)
+```
+
+In universe filter to use for sector / index maps:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+equity.in_universe
+```
+
+Which we can use to build up index maps:
+
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+equity.index_tickers
+```
+
+And sector maps:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+equity.sector_tickers
+```
+
+## Model
+
+As we saw in the previous post, PCA takes a matrix of (n_tickers, n_dates)
+
+Returns
+
+Weight matrix of (n_tickers, n_factors)
+Eigenvalues (n_factors)
+Factors (n_factors, n_dates)
+
+Where it does this by eigendecomposition of the covariance matrix of the input data.
+
+PPCA operates slightly differently, fitting an equivalent set of weights usign gradient descent:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.PPCA.fit, cls_method=True)
+```
+
+Each step, we update our parameters by moving in the oposite direction to the gradient of our loss fucntion:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.PPCA.update, cls_method=True)
+```
+
+Which can be found here:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.PPCA.loss, cls_method=True)
+```
+
+We can break this down step by step.
+
+This pushes the eigvals to be descending:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_descending)
+```
+
+So that the most important is factor zero.
+
+This then maximises them (as we subtract, not add):
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mse_zero)
+```
+
+So we maximise the variance of the projection of our data into factor space.
+
+This pushes the weights to be orthogonal to one another (zero dot product, unit norm)
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_orthogonal)
+```
+
+This means that we end up with only a signal weight matrix, as orthongaol transpose = inverse.
+
+So, interpreted one way, ticker loadings of a factor portfolio, transposed, beta of tickers to the factor (versus eg. SVD where we end up with two different matrices).
+
+This pushes the factors to be zero center:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mean_zero)
+```
+
+And this to have their variance given by the eigvalues:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_cov_diag)
+```
+
+Which together push them to be independent multivariate gaussian, with variance in descending order, as given by the eigenvalues.
+
+Finally, we add a mse term between our original returns and the lossy reconstruction, formed from the betas of our tickers to the factor paths:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mse)
+```
+
+Which, together, should allow us to reproduce the original eigenvalue decompositon approach, as follows:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+@functools.lru_cache(maxsize=10)
+def fit_ppca(d_start, d_end, n):
+    df = get_returns(d_start, d_end)
+    return xfactors.PPCA.fit(df, n = n), df
+_ = fit_ppca(dates.y(2022), dates.y(2023), n=3)
+```
+
+Note that this isn't the format in the original ppca paper - instead, there they ....
+
+## Results
+
+
+
+## Sectors
+
+
+
+## Indices
+
+
+
+## Interpretation
+
+
+
+## Limitations
+
+Still orthogonal - no 'meaning' just variance maximising projection
+
+But, we are at least now robust to missing data
+
+## Next steps
+
+And, critically, we're now just in gradient descent land
+
+So extendings this - eg. making the weights functions of other features (like our sector / index labels)
+
+Is straight foward
