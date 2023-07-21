@@ -16,6 +16,13 @@ This post is a first simple example of how to use said utilities to do a PCA of 
 
 ```{python}
 #| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| code-fold: true
 #| code-summary: "Environment"
 import os
 import sys
@@ -52,7 +59,8 @@ import hc_core.dates as dates
 import bt.data.prices.int
 import bt.algos.universe.int
 
-graphs.set_rendering(graphs.HTML)
+# graphs.set_rendering(graphs.HTML)
+graphs.set_rendering("NULL")
 ```
 
 ## Data
@@ -101,7 +109,7 @@ As so:
 #| code-summary: "Universe"
 def get_returns( d_start, d_end, threshold=1.):
     tickers = xtuples.iTuple(df_returns.columns).filter(
-        in_universe,
+        equity.in_universe,
         df=dfs.index_date_filter(df_universe, d_start, d_end),
         threshold=threshold,
     ).pipe(list) 
@@ -161,6 +169,59 @@ _ = fit_pca(dates.y(2022), dates.y(2023), n=3)
 ```
 
 ## Results
+
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_factor_cov(d_start, d_end, n):
+    pca, df = fit_pca(d_start, d_end, n)
+    factors = pca.encode(df)
+    print(numpy.cov(factors.T))
+    return rendering.render_df_color_range(
+        pandas.DataFrame(
+            factors,
+            # columns=list(range(3)),
+            # index=list(range(3)),
+        ).corr(),
+        v_min=-1.,
+        v_max=.1,
+    )
+pca_factor_cov(dates.y(2022), dates.y(2023), n=3)
+```
+
+And the factor density:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_factor_density(d_start, d_end, n):
+    pca, df = fit_pca(d_start, d_end, n)
+    factors = pca.encode(df)
+    return densities.gaussian_kde_1d_df(
+        {
+            i: factors.real[..., i]
+            for i in range(n)
+        }, 
+        clip_quantile=.01
+    )
+```
+
+We can see that they're (roughly) gaussian distributed:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def pca_factor_density_chart(d_start, d_end, n):
+    return graphs.df_chart(
+        pca_factor_density(d_start, d_end, n),
+        x="position",
+        y="density",
+        color="key",
+        title="Factor Density (0.01 Clip)"
+    )
+pca_factor_density_chart(dates.y(2022), dates.y(2023), n=3)
+```
 
 Plotting the resulting factor weights:
 
@@ -223,6 +284,8 @@ pca_pred(dates.y(2022), dates.y(2023), n=3)
 
 That is to say, they're both loadings, and when transposed (which is inversion as orthogonal), betas back up from the factor returns to the ticker return
 
+print the decode / encode as just transpose of one another
+
 But a lossy reconstruction if we only select n < len(tickers) factors
 
 ```{python}
@@ -245,7 +308,11 @@ For instance, given a function to map from a ticker to a sector sector:
 ```{python}
 #| code-fold: false
 #| code-summary: ""
-equity.sector_tickers
+sector_tickers = equity.f_ticker_map(
+    dfs_sectors,
+    fit_pca,
+    lambda pca: pca.columns,
+)
 ```
 
 But, some industries are overrpresented (below is proportion of universe per industry)
@@ -271,15 +338,15 @@ GICS denominator:
 #| code-fold: false
 #| code-summary: ""
 def pca_sector_weights(d_start, d_end, n):
+    weights = pca_weights(d_start, d_end, n)
     sector_map = sector_tickers(d_start, d_end, n)
-    weights = pca_sector_weights(d_start, d_end, n)
-    sector_w = {
-        s: 1 / (len(ts) / len(weights.columns))
-        for s, ts in sector_map.items()
-    }
+    sector_weights = pandas.DataFrame({
+        s: weights[tickers.pipe(list)].sum(axis=1)
+        for s, tickers in sector_map.items()
+    })
     return pandas.DataFrame({
-        s: weights[s] * sector_w[s]
-        for s in weights.columns
+        s: sector_weights[s] / len(ts)
+        for s, ts in sector_map.items()
     })
 ```
 
@@ -410,6 +477,12 @@ Also, can't account for missing data (would need to null fill, for instance)
 
 ## Next Steps
 
-We'll deal with the second, first, with ppca - a gradient based variatn of the above which is robust to missing data.
+One way to deal better with missing data, is to look at instrumenting our weights
 
-Before then looking at instrumenting our weights, which allows us to deal with the second.
+So, instead of a weight per ticker per factor, we have a function from a set of features per ticker to a weight per factor.
+
+This will also have the nice benefit of potentially making the factors more meaningful (as fucntions of the features).
+
+However, to get there, we'll first have to rephase the above as a gradient descent problem.
+
+Which we'll look at next.

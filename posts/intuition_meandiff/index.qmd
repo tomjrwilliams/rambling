@@ -1,0 +1,191 @@
+---
+title: "Intuition: Mean diff"
+author: "Tom Williams"
+date: "2023-07-17"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+..
+
+## Setup
+
+```{python}
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/hc-core/src")
+sys.path.append("C:/hc/xfactors/src/xfactors")
+sys.path.append("C:/hc/xtuples/src/xtuples")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Imports"
+import datetime
+import functools
+import itertools
+
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples
+import xfactors
+
+import hc_core.imports as imports
+import hc_core.rendering as rendering
+import hc_core.dfs as dfs
+import hc_core.densities as densities
+import hc_core.graphs as graphs
+import hc_core.dates as dates
+
+import bt.data.prices.int
+import bt.algos.universe.int
+
+import utils
+
+# graphs.set_rendering(graphs.HTML)
+graphs.set_rendering("NULL")
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+import scipy.stats
+def diff_density(specs, n):
+
+    samples = {}
+    diffs = {}
+
+    for spec in specs:
+
+        label = spec["label"]
+
+        gen = spec["f"](
+            shape=(n, 2,), 
+            n=1, 
+            **spec["kwargs"]
+        )
+        vs = spec.get("pipe", lambda x: x)(next(gen))
+
+        vdiffs = vs[:, 1] - vs[:, 0]
+
+        samples[label] = vs[:, 0]
+        diffs["diffs({})".format(label)] = vdiffs
+
+    aggs = dict(
+        mean=numpy.mean,
+        var=numpy.var,
+        skew=scipy.stats.skew,
+        kurtosis=scipy.stats.kurtosis,
+    )
+
+    stats = pandas.DataFrame({
+        **{
+            k: {
+                agg: f_agg(vs) for agg, f_agg in aggs.items()
+            }
+            for k, vs in samples.items()
+        },
+        **{
+            k: {
+                agg: f_agg(vs) for agg, f_agg in aggs.items()
+            }
+            for k, vs in diffs.items()
+        }
+    })
+    display(stats.T)
+        
+    chart_kws = dict(
+        x="position",
+        y="density",
+        color="key",
+    )
+    return graphs.df_chart(
+        densities.gaussian_kde_1d_df(
+            samples,
+            clip_quantile=.01
+        ),
+        **chart_kws,
+        title="Samples"
+    ), graphs.df_chart(
+        densities.gaussian_kde_1d_df(
+            diffs,
+            clip_quantile=.01
+        ),
+        **chart_kws,
+        title="Diffs"
+    )
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def beta_reparam_mu_var(mu, var):
+    mu_2 = mu * (1 - mu)
+    # constraint: a + b > 0
+    assert var < mu_2, dict(
+        mu=mu,
+        var=var,
+        mu_2=mu_2,
+    )
+    v = (mu_2 / var) - 1
+    a = mu * v
+    b = (1 - mu) * v
+    return a, b
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def beta_spec_mu_var(
+    mu,
+    var,
+    unit_var = False,
+    zero_center = False,
+):
+    a, b = beta_reparam_mu_var(mu, var)
+    
+    m = (1 / var) ** .5 if unit_var else 1
+    c = a / (a + b) if zero_center else 0
+    
+    return dict(
+        f=utils.random_beta,
+        kwargs=dict(a=a, b=b),
+        label="beta({}, {})".format(mu, var),
+        pipe=lambda v: (v - c) * m,
+    )
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+samples, diffs = diff_density(xtuples.iTuple([
+    dict(
+        f=utils.random_normal,
+        kwargs=dict(),
+        label="normal(0, 1)",
+    ),
+    beta_spec_mu_var(0.5, 0.1, unit_var=True, zero_center=True),
+    beta_spec_mu_var(0.1, 0.05, unit_var=True, zero_center=True),
+    beta_spec_mu_var(0.9, 0.05, unit_var=True, zero_center=True),
+]), n = 300)
+display(samples)
+display(diffs)
+```

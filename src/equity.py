@@ -12,7 +12,7 @@ def in_universe(ticker, df, threshold):
 # universe = bt.algos.universe.configs.GICS_SECTORS
 def f_ticker_map(dfs, f_model, f_tickers, threshold = 1.):
     def f(*args, **kwargs):
-        model = f_model(*args, **kwargs)
+        model, data = f_model(*args, **kwargs)
         tickers = f_tickers(model)
         return {
             i: tickers.filter(
