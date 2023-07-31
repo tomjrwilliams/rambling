@@ -1,11 +1,411 @@
 ---
-title: "Example: PPCA, Instrumented Weights, Equity Returns"
+title: "Example: PPCA, Equity Returns: instrumented features"
 author: "Tom Williams"
 date: "2023-07-17"
 categories: []
 draft: false
+execute:
+  daemon: false
 ---
 
-country and inudstry?
+This is the third post ...
 
-later do by fundamentals
+## Setup
+
+```{python}
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/hc-core/src")
+sys.path.append("C:/hc/xfactors/src/xfactors")
+sys.path.append("C:/hc/xtuples/src/xtuples")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Imports"
+import datetime
+import functools
+import itertools
+
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples
+import xfactors
+
+import src.equity as equity
+
+import hc_core.imports as imports
+import hc_core.rendering as rendering
+import hc_core.dfs as dfs
+import hc_core.densities as densities
+import hc_core.graphs as graphs
+import hc_core.dates as dates
+import hc_core.caching as caching
+
+import bt.data.prices.int
+import bt.algos.universe.int
+
+graphs.set_rendering("NA")
+```
+
+## Data
+
+As before, work on daily close to close total returns, on a universe of major european equity indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+df_returns = bt.data.prices.int.returns_df(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+) 
+```
+
+Defined on a universe of european equity indices:
+
+First, the indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_indices = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+)
+```
+
+Also later on use sectors:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_sectors = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    sectors=bt.algos.universe.configs.GICS_SECTORS,
+)
+```
+
+Though we'll leave building up the sector maps to once we have our model.
+
+As follows:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+def f_norm(df):
+    df_vol = df.ewm(alpha=0.01).std()
+    df = df / df_vol
+    return df.dropna()
+
+def get_returns(
+    d_start,
+    d_end,
+    threshold=1.,
+    universe=xtuples.iTuple(),
+    norm=False,
+):
+    df_universe = bt.algos.universe.int.index_union({
+        k: df for k, df in {
+            **dfs_indices,
+            **dfs_sectors,
+        }.items()
+        if k in universe
+    })
+    tickers = xtuples.iTuple(df_returns.columns).filter(
+        equity.in_universe,
+        df=dfs.index_date_filter(df_universe, d_start, d_end),
+        threshold=threshold,
+    ).pipe(list) 
+    df = dfs.index_date_filter(
+        df_returns, d_start, d_end
+    )[tickers].dropna()
+    if not norm:
+        return df
+    return f_norm(df)
+```
+
+## Model
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+def get_features(
+    tickers, 
+    d_start, 
+    d_end, 
+    threshold=1.,
+    indices=False,
+    sectors=True,
+):
+    return {
+        xfactors.Feature(
+            k,
+            boolean=True,
+        ): (
+            lambda _df: pandas.Series({
+                ticker: (
+                    numpy.NaN 
+                    if ticker not in df.columns
+                    else _df[ticker].any()
+                )
+                for ticker in tickers
+            }).fillna(0)
+        )(dfs.index_date_filter(df, d_start, d_end))
+        for k, df in {
+            **(
+                dfs_indices if indices else {}
+            ),
+            **(
+                dfs_sectors if sectors else {}
+            ),
+        }.items()
+    }
+```
+
+PPCA operates slightly differently, fitting an equivalent set of weights usign gradient descent:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.PPCA_Instr_Weights.fit, cls_method=True)
+```
+
+Each step, we update our parameters by moving in the oposite direction to the gradient of our loss fucntion:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.PPCA_Instr_Weights.update, cls_method=True)
+```
+
+Which can be found here:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(loss_pcca_instr_weights)
+```
+
+We can break this down step by step.
+
+This pushes the eigvals to be descending:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_descending)
+```
+
+So that the most important is factor zero.
+
+This then maximises them (as we subtract, not add):
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mse_zero)
+```
+
+So we maximise the variance of the projection of our data into factor space.
+
+This pushes the weights to be orthogonal to one another (zero dot product, unit norm)
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_orthogonal)
+```
+
+This means that we end up with only a signal weight matrix, as orthongaol transpose = inverse.
+
+So, interpreted one way, ticker loadings of a factor portfolio, transposed, beta of tickers to the factor (versus eg. SVD where we end up with two different matrices).
+
+This pushes the factors to be zero center:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mean_zero)
+```
+
+And this to have their variance given by the eigvalues:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_cov_diag)
+```
+
+Which together push them to be independent multivariate gaussian, with variance in descending order, as given by the eigenvalues.
+
+Finally, we add a mse term between our original returns and the lossy reconstruction, formed from the betas of our tickers to the factor paths:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+rendering.render_source(xfactors.loss_mse)
+```
+
+Which, together, should allow us to reproduce the original eigenvalue decompositon approach, as follows:
+
+todo: remove all the pca / ppca
+change to eg. get weights
+fit model
+weights chart etc.
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+importlib.reload(xfactors)
+@caching.lru_cache()
+def fit_ppca(
+    d_start, 
+    d_end,
+    n,
+    # universe = bt.algos.universe.configs.INDICES,
+    universe=xtuples.iTuple([
+    #     "SX7E Index",
+        "SX5E Index",
+        "CAC Index",
+        "DAX Index",
+    ]),
+    indices=False,
+    sectors=True,
+):
+    df = get_returns(d_start, d_end, universe=universe)
+    features = get_features(
+        df.columns,
+        d_start,
+        d_end,
+        indices=indices,
+        sectors=sectors,
+    )
+    return xfactors.PPCA_Instr_Weights.fit(
+        df, features, n=n, iters = 2500,
+        #  bias=True
+    ), df, features
+_ = fit_ppca(dates.y(2022), dates.y(2023), 2)
+```
+
+This time, we have two sets of weights.
+
+One, in terms of our features.
+
+Have to split back out by feature, by factor:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+def get_weights(d_start, d_end, n):
+    ppca, _, _ = fit_ppca(d_start, d_end, n)
+    df = pandas.DataFrame(
+        ppca.weights_features.T.real,
+        columns=list(ppca.feature_map.keys()) + (
+            ["bias"] if ppca.bias else []
+        )
+    )
+    ws = pandas.Series(
+        data=ppca.weights_factors.real.squeeze(),
+        index=df.index
+    )
+    return df, ws
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+def feature_bar_chart(d_start, d_end, n):
+    df, ws = get_weights(d_start, d_end, n)
+    df = df.multiply(ws, axis = 0)
+    return graphs.df_facet_bar_chart(
+        dfs.melt_with_index(df, index_as="factor"),
+        x="variable",
+        y="value",
+        facet="factor",
+    )
+```
+
+One in terms of our factors:
+
+try with a constant?
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+feature_bar_chart(dates.y(2022), dates.y(2023), 2)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+feature_bar_chart(dates.y(2007), dates.y(2009), 2)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+feature_bar_chart(dates.y(2020), dates.y(2021), 2)
+```
+
+That we can then, as before, back-weight through against our features for interpretability:
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+def fwf_scatter(d_start, d_end, n, density = True):
+    ppca, df, features = fit_ppca(d_start, d_end, n)
+    df = xfactors.PPCA_Instr_Weights.df_fwf(ppca, df, features)
+    cov = rendering.render_df_color_range(
+        df.cov(),
+        dp=5,
+    )
+    if not density:
+        return cov
+    display(cov)
+    return graphs.df_density_pair_chart(
+        df,
+        g="factor",
+    )
+fwf_scatter(dates.y(2022), dates.y(2023), 2)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+def instr_factors_scatter(d_start, d_end, n, density=True):
+    ppca, df, features = fit_ppca(d_start, d_end, n)
+    df = xfactors.PPCA_Instr_Weights.df_instr_factors(
+        ppca, df, features
+    )
+    cov = rendering.render_df_color_range(
+        df.cov(),
+        dp=10,
+    )
+    if not density:
+        return cov
+    display(cov)
+    return graphs.df_density_pair_chart(
+        df,
+        g="factor",
+    )
+instr_factors_scatter(dates.y(2022), dates.y(2023), 2)
+```

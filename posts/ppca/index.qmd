@@ -1,0 +1,27 @@
+---
+title: "Example: PCA & PPCA"
+author: "Tom Williams"
+date: "2023-07-31"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+I'm currently in the process of splitting out some of the factor modelling code that I've written as part of my [day job](https://havencove.com/) into the open-source package [xfactors](https://pypi.org/project/xfactors).
+
+In the previous post, we walked through a first toy example of using xfactors for linear regression - which, frankly, was over-kill given the simplicity of the problem.
+
+So, in this post, we'll take the slightly more involved example of probabilistic PCA, which should demonstrate the value of the package slightly better.
+
+## Problem
+
+PCA ...
+
+## Solution
+
+## Results
+
+## Next steps
+
+Now that ..., we'll [next](...) turn to real data: equity returns.

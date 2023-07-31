@@ -80,7 +80,22 @@ df_returns = bt.data.prices.int.returns_df(
 ) 
 ```
 
-We don't need to worry about missing data this time, so no need for a universe filtering functon, though we will define a simple date filtering wrapper function:
+Defined on a universe of european equity indices:
+
+First, the indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Data"
+dfs_indices = bt.algos.universe.int.rolling_indices(
+    dates.y(2005),
+    dates.y(2023, m=4),
+    indices=bt.algos.universe.configs.INDICES,
+)
+df_universe = bt.algos.universe.int.index_union(dfs_indices)
+```
+
+As follows:
 
 ```{python}
 #| code-fold: false
@@ -96,22 +111,8 @@ def get_returns( d_start, d_end, threshold=1.):
     )[tickers].dropna()
 ```
 
-We will, however, still need the index and sector data for aggregating up the weights into more interpretible buckets.
 
-First, the indices:
-
-```{python}
-#| code-fold: false
-#| code-summary: "Data"
-dfs_indices = bt.algos.universe.int.rolling_indices(
-    dates.y(2005),
-    dates.y(2023, m=4),
-    indices=bt.algos.universe.configs.INDICES,
-)
-df_universe = bt.algos.universe.int.index_union(dfs_indices)
-```
-
-Then the sectors:
+Also later on use sectors:
 
 ```{python}
 #| code-fold: false
@@ -158,7 +159,7 @@ Which can be found here:
 ```{python}
 #| code-fold: false
 #| code-summary: "PCA"
-rendering.render_source(xfactors.PPCA.loss, cls_method=True)
+rendering.render_source(loss_ppca)
 ```
 
 We can break this down step by step.
