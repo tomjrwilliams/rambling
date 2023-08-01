@@ -10,34 +10,28 @@ execute:
 
 I'm currently in the process of splitting out some of the factor modelling code that I've written as part of my [day job](https://havencove.com/) into the open-source package [xfactors](https://pypi.org/project/xfactors).
 
-This post provides a minimal first working example for how to use the package, in this case, to do a bog-standard linear regression.
+This post provides a minimal first working example for how to use the package, in this case, to do a standard linear regression.
 
 ```{python}
-#| code-fold: true
-#| code-summary: "Auto reload"
+#| echo: false
 %load_ext autoreload
 %autoreload 2
 ```
 
 ```{python}
-#| code-fold: true
-#| code-summary: "Environment"
+#| echo: false
 import os
 import sys
 import importlib
 sys.path.append("C:/hc/rambling")
 sys.path.append("C:/hc/xfactors/src")
-sys.path.append("C:/hc/xtuples/src/xtuples")
+sys.path.append("C:/hc/xtuples/src")
 os.environ["MODULE"] = "c:/hc/src/"
 ```
 
 ```{python}
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "Imports"
-import datetime
-import functools
-import itertools
-
 import numpy
 import pandas
 
@@ -50,40 +44,42 @@ import xfactors as xf
 
 ## Problem
 
-The problem that we're trying to solve is that of minimising the squared distance between an output matrix, and a linear transformation of an input matrix by a set of weights:
-
-... argmin w ...
-
-### Features
-
-We'll start by sampling some three dimensional gaussian noise to use as our input 'features' matrix:
+The problem that we're trying to solve is that of finding a matrix of weights, W, that minimises the mean squared distance between a linear transformation (by those weights) of a given input / feature matrix, X, and a given output / observation matrix, Y.
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Noise"
+#| code-summary: "Dimensions"
 SAMPLES = 100
-FACTORS = 3
+FEATURES = 3
 OUTPUTS = 4
+```
 
-noise = xf.rand.gaussian(shape=(SAMPLES, FACTORS,))
+### Features
+
+We'll start by sampling some gaussian noise to use as our input 'features' matrix:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+noise = xf.rand.gaussian(shape=(SAMPLES, FEATURES,))
 noise_df = pandas.DataFrame(
     noise,
-    columns=xt.iTuple.range(FACTORS).map("factor({})".format),
+    columns=xt.iTuple.range(FEATURES).map("factor({})".format),
     index=xt.iTuple.range(SAMPLES).pipe(list),
 )
 noise_df.head()
 ```
 
-The two dimensional densities of which we can plot as follows:
+The two dimensional densities of which we can plot as so:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Noise - Density"
+#| code-summary: "Features - Density"
 importlib.reload(xf)
 xf.graphs.df_density_pair_chart(
     noise_df,
     key="factor",
-    title="Noise: 2D Densities"
+    title="Features: 2D Densities"
 )
 ```
 
@@ -94,13 +90,12 @@ We'll transform these 'features' into a matrix of observations, by matrix multip
 ```{python}
 #| code-fold: false
 #| code-summary: "Weights"
-weights = xf.rand.gaussian(shape=(FACTORS, OUTPUTS,))
+weights = xf.rand.gaussian(shape=(FEATURES, OUTPUTS,))
 weights_df = pandas.DataFrame(
     weights,
     columns=xt.iTuple.range(OUTPUTS).map("output({})".format),
-    index=xt.iTuple.range(FACTORS).map("factor({})".format),
+    index=xt.iTuple.range(FEATURES).map("factor({})".format),
 )
-
 xf.rendering.render_df_color_range(
     weights_df,
     dp=3,
@@ -120,11 +115,10 @@ outputs_df = pandas.DataFrame(
     columns=xt.iTuple.range(OUTPUTS).map("output({})".format),
     index=xt.iTuple.range(SAMPLES).pipe(list),
 )
-
 outputs_df.head()
 ```
 
-If we again plot the two dimensional densities of our observations, we can see that our observations are just rotated, scaled versions of our original gaussian features:
+If we again plot the two dimensional densities of our observations, we can see that they're just rotated, scaled versions of our original gaussian features:
 
 ```{python}
 #| code-fold: false
@@ -136,27 +130,97 @@ xf.graphs.df_density_pair_chart(
 )
 ```
 
-## Solution
+Our goal is: given only the input 'feature' matrix and the output 'observation' matrix, to infer the (hidden) weight matrix.
 
-Our goal is, given only the input 'feature' matrix and the output observation matrix, to infer the (hidden) weight matrix.
+## xfactors
 
 We can do so using [xfactors](https://pypi.org/project/xfactors).
 
 [xfactors](https://pypi.org/project/xfactors) provides a set of building blocks for designing simple machine learning pipelines, build on top of [jax](https://jax.readthedocs.io/en/latest/index.html) (a machine learning library from the Google / DeepMind AI research team).
 
-An xfactors model is defined as a tuple of processing stages, and a tuple of constraints.
+### Overview
+
+An xfactors model is defined as a tuple of tuples of operators, grouped into stages, together with an optional tuple of constraints.
+
+Before our model runs, we fold over our operators, calling each's respective init_params() method. 
 
 ```{python}
+#| echo: false
 #| code-fold: false
-#| code-summary: "Model"
-xf.rendering.render_source(xf.Model, until = "add_input")
+#| code-summary: "Example - Init Params"
+xf.rendering.render_source(xf.reg.Lin_Reg.init_params, until = "if")
 ```
 
-Where we'll ignore the params field for now.
 
-Every model has at least one stage, the input stage, which should take raw data - for instance, a pandas dataframe - and return a (jax) numpy array.
+This creates a tuple of the same overall shape as our model itself, containing the parameters that each operator requires (if any).
 
-The constraints, when provided, should return scalar jax arrays, the sum of which will be minimised during parameter optimisation.
+```{python}
+#| echo: false
+#| code-fold: false
+#| code-summary: "Init Objective"
+xf.rendering.render_source(xf.xfactors.init_params)
+```
+
+Then, on each pass through our model, we incrementally build up another tuple of results (one from each operator) with also, eventually, the same overall shape as our model itself.
+
+At each stage, our params tuple is packaged together with the accumulated results-thus-far, into a single *state* tuple.
+
+This state tuple is then passed as the only non-bound argument of our operator's apply methods (used to generate the results for a given stage, given previous results so far).
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| code-summary: "Apply Signature"
+xf.rendering.render_source(xf.reg.Lin_Reg.apply, until = "weights")
+```
+
+### Inputs
+
+Every model has at least one stage: the input stage. 
+
+The input stage is different to the others, because instead of a tuple of results-so-far, it's instead given a tuple of raw data - for instance, pandas dataframes - as the second element in the passed state tuple.
+
+As such, and as one can see below, the input stage is only called once during optimisation - to seed the initial results tuple - whereas any further stages are each re-called on each optimisation pass (with the latest version of our params tuple).
+
+### Optimisation
+
+Optimisation is performed using jaxopt, with which we simply have to specify an objective function to be minimised, given our params and any other input data.
+
+This objective function is auto-generated for us, given the model definition:
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| code-summary: "Init Objective"
+xf.rendering.render_source(xf.xfactors.init_objective)
+```
+
+First, we run the model forward, incrementally building up our results tuple given the latest values of our params, and our accumulated results thus far.
+
+Then, any constraints are applied as a final stage, and the sum of their results (which should be scalar jax arrays) is returned. 
+
+Our params are then updated by jaxopt given their gradient w.r.t. the loss, for use in the next iteration (until either a given max number of iterations, or - optionally - some kind of convergence).
+
+### Locations
+
+Many operators take Locations as arguments, specifying where to find their dependencies in the state tuple.
+
+```{python}
+#| echo: false
+#| code-fold: false
+#| code-summary: "Init Objective"
+xf.rendering.render_source(xf.xfactors.Location, until="check")
+```
+
+The first element of a Location is the domain, specifying if the target is a parameter or a result (corresponding to the index in the state tuple: param = 0 and result = 1).
+
+The remaining elements specify an index path through the resulting param / result tuple. 
+
+As our params / results tuples have the same shape as our model, the path to the params / results of a given operator in those respective tuples, is the same as the path to the operator itself in our model definition.
+
+## Solution
+
+This will all make a little more sense with a concrete example.
 
 ### Init
 
@@ -168,16 +232,16 @@ We'll start by creating an empty model:
 model = xf.Model()
 ```
 
-Which will only have the one stage (on top of the input stage, that every model has):
+With only one stage (on top of the input stage, that every model has):
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Stages - Init"
-STAGES = xf.init_stages(1)
+STAGES, model = model.init_stages(1)
 STAGES
 ```
 
-And which we'll unpack for easier reference as follows:
+We'll unpack our stage integers for clarity:
 
 ```{python}
 #| code-fold: false
@@ -185,21 +249,21 @@ And which we'll unpack for easier reference as follows:
 INPUT, REGRESS = STAGES
 ```
 
-### Inputs
+### Inputs && Locations
 
-We'll then sepcify that our model should take two dataframes as inputs (for our feature and observation matrices, respectively):
+We'll specify that our model should take two dataframes as inputs (for our feature and observation matrices, respectively):
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Model - Inputs"
 model = (
     xf.Model()
-    .add_input(xf.Input_DataFrame_Wide())
-    .add_input(xf.Input_DataFrame_Wide())
+    .add_input(xf.inputs.Input_DataFrame_Wide())
+    .add_input(xf.inputs.Input_DataFrame_Wide())
 )
 ```
 
-Each time we add an item to our model we populate it's *location* field, specifying an index path through our model to the item.
+We can see that each operator has been given a location field, specifying the index path to itself in the model:
 
 ```{python}
 #| code-fold: false
@@ -207,34 +271,29 @@ Each time we add an item to our model we populate it's *location* field, specify
 model.stages[0][0].loc
 ```
 
-We'll return to the domain field shortly.
+As we're in the model (not either the params or results tuple), the domain field is currently left blank.
 
-### Locations & Operators
+### Operators
 
-When our model runs, we incrementally build up a tuple of results with the same shape as our model.
-
-This tuple is then passed from stage to stage as the *state* argument in our operator's apply methods.
-
-We navigate this *state* tuple using *Location* tuples, loaded into our operators, which specify paths to any relevant previous results or parameters.
-
-For instance, our linear regression operator's apply method is defined as follows:
+Our linear regression operator's apply method is defined as follows:
 
 ```{python}
+#| echo: false
 #| code-fold: false
 #| code-summary: "Linear Regression - Operator Apply"
 xf.rendering.render_source(xf.reg.Lin_Reg.apply)
 ```
 
-In words, it takes a tuple of weight locations, and a tuple of data locations, concatenates the values at each of these location tuples respectively, and then (matrix) multiplies them together.
+In words, using a given pair of tuples of weight locations and data locations, it concatenates the values at each of these location tuples respectively, and then (matrix) multiplies them together.
 
-We can add such an operator to our model as follows:
+We can add such an operator to our model as so (specifying that it should be in the REGRESS stage):
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Linear Regression - Add Operator"
 model = (
     model.add_stage()
-    .add_operator(REGRESS, xf.Lin_Reg(
+    .add_operator(REGRESS, xf.reg.Lin_Reg(
         n=OUTPUTS,
         sites=xt.iTuple.one(
             xf.Loc.result(INPUT, 0),
@@ -244,31 +303,31 @@ model = (
 )
 ```
 
-Where the n parameter indicates what size ..., and which we need to init the right shape parameters (if we're not referring to a value defined earlier in the pipeline):
+We did not need to specify a stage when adding an input, because all inputs are implicitly in stage 0.
+
+The linear regression operator requires a further argument n, indicating the dimension size of the intended regression output.
+
+As one can see below, the input size is inferred from the concatenated shape of the specified input locations.
+
+Taken together, we can then define a single weight matrix parameter of size: (sum(input.shape[1]), n).
 
 ```{python}
+#| echo: false
 #| code-fold: false
 #| code-summary: "Linear Regression - Operator Apply"
 xf.rendering.render_source(xf.reg.Lin_Reg.init_params)
 ```
 
+It is this matrix of linear regression parameters that we will attempt to fit - ideally, matching our weight matrix generated above.
+
 ### Parameters & Constraints
 
-Before our model runs, we incrementally build up a tuple of any parameters required by our operators (again, with the same resulting shape as our model).
+As mentioned above, to fit our parameters, we simply have to define some constraints to be minimised by our auto-generated objective function.
 
-To fit our parameters, we simply have to define a scalar objective function to minimise.
-
-This function is generated for us when we build out model, and simply minimises the sum of our constraint results:
+For instance, we can define a mean square error constraint:
 
 ```{python}
-#| code-fold: false
-#| code-summary: "Init Objective"
-xf.rendering.render_source(xf.xfactors.init_objective)
-```
-
-For instance, we can define a mean square error constraint (to be minimised) as follows:
-
-```{python}
+#| echo: false
 #| code-fold: false
 #| code-summary: "Constraint - MSE"
 xf.rendering.render_source(xf.constraints.Constraint_MSE)
@@ -280,7 +339,7 @@ Which we can add to our model as so:
 #| code-fold: false
 #| code-summary: "Add Constraint"
 model = (
-    model.add_constraint(xf.Constraint_MSE(
+    model.add_constraint(xf.constraints.Constraint_MSE(
         sites=xt.iTuple(
             xf.Loc.result(INPUT, 1),
             xf.Loc.result(REGRESS, 0),
@@ -289,7 +348,7 @@ model = (
 )
 ```
 
-Sepcifying that we should minimise the squared difference between our second input matrix, and the output of our regression operator.
+In words, specifying that we should minimise the mean squared difference between our second input matrix, and the output of the first operator in the REGRESS stage (ie. our regression operator).
 
 ### Full Model & Optimisation
 
@@ -300,17 +359,17 @@ Putting it all together, our whole pipeline can be defined as so:
 #| code-summary: "Model"
 model = (
     xf.Model()
-    .add_input(xf.Input_DataFrame_Wide())
-    .add_input(xf.Input_DataFrame_Wide())
+    .add_input(xf.inputs.Input_DataFrame_Wide())
+    .add_input(xf.inputs.Input_DataFrame_Wide())
     .add_stage()
-    .add_operator(REGRESS, xf.Lin_Reg(
-        n=1,
+    .add_operator(REGRESS, xf.reg.Lin_Reg(
+        n=OUTPUTS,
         sites=xt.iTuple.one(
             xf.Loc.result(INPUT, 0),
         ),
         #
     ))
-    .add_constraint(xf.Constraint_MSE(
+    .add_constraint(xf.constraints.Constraint_MSE(
         sites=xt.iTuple(
             xf.Loc.result(INPUT, 1),
             xf.Loc.result(REGRESS, 0),
@@ -319,31 +378,44 @@ model = (
 )
 ```
 
-Given this, we can initialise our parameters and a seed results tuple, and generate both an objective and apply functions, as so:
+Calling model.build() initialises our parameters and a seed results tuple given a data tuple, and generates both an objective and apply function, given a data tuple:
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Model"
+data = (
+    noise_df,
+    outputs_df,
+)
 model, init_params, init_results, objective, apply = model.build(data)
 ```
 
-To fit our params, we can call model.optimise:
+To fit our params, we then call model.optimise():
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Model"
 model, params = model.optimise(
-    params, init_results, objective, verbose=False
+    init_params, init_results, objective, verbose=False
 )
 ```
 
-And then to apply our model to new (or in this case, old, data), we can use apply:
+And then to apply our model to new (or in this case, old, data), we simply use apply():
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Model"
 results = apply(params, data)
+results_df = pandas.DataFrame(
+    results[REGRESS][0],
+    columns=outputs_df.columns,
+    index=outputs_df.index.values,
+)
+results_df.head()
 ```
+
+
+Whilst this is clearly somewhat over-kill for such a simple problem, we'll see in later posts that this framework can significantly simplify definition of more complex pipelines.
 
 ### Results
 
@@ -369,7 +441,7 @@ And then, our fitted weights parameter:
 #| code-summary: "Weights - Results"
 xf.rendering.render_df_color_range(
     pandas.DataFrame(
-        params[REGRESS][0].T,
+        params[REGRESS][0],
         columns=weights_df.columns,
         index=weights_df.index.values,
     ),
@@ -379,16 +451,11 @@ xf.rendering.render_df_color_range(
 )
 ```
 
-By plotting the two dimensional densities of our original and re-produced observation matrices side by side:
+We can run a further (admittedly, completely redundant) sense check by plotting the two dimensional densities of our original and re-produced observation matrices side by side:
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Comparison - Density"
-results_df = pandas.DataFrame(
-    results[REGRESS][0],
-    columns=outputs_df.columns,
-    index=outputs_df.index.values,
-)
 xf.graphs.df_density_pair_chart(
     pandas.concat([
         outputs_df.assign(
@@ -404,10 +471,10 @@ xf.graphs.df_density_pair_chart(
 )
 ```
 
-We can see that our fitted weights seem to perform a similar rotation and scaling to our original (hidden) target weights.
+Showing that our fitted weights have performed a similar rotation and scaling as our original (hidden) target weights.
 
 ## Next steps
 
-That being said, the above was definitely over-kill for such a simple (toy) problem.
+As mentioned above, xfactors was almost certainly over-kill for such a simple (toy) problem.
 
-As such, we'll [next](...) turn to another simple example - a variant of probabilistic PCA - in which the simplifying value of the library will be more apparent.
+As such, we'll [next](...) turn to another simple example - a variant of probabilistic PCA - in which the simplifying value of the library will become more apparent.

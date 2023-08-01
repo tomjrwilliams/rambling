@@ -1,0 +1,158 @@
+---
+title: "Example: Linear regression"
+author: "Tom Williams"
+date: "2023-07-31"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+This post is a (somewhat eclectic) combination of little experiments, intended to help build up intuition about the notion of vector / matrix orthogonality.
+
+```{python}
+#| echo: false
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/xfactors/src")
+sys.path.append("C:/hc/xtuples/src")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import numpy
+import pandas
+
+import jax
+import jax.numpy
+
+import xtuples as xt
+import xfactors as xf
+```
+
+### Orthogonal vectors
+
+Orthogonal if dot product is zero
+
+- dummy is_orthog func
+
+Dot product is size of projection of one on another
+
+- graphs: facet a few pairs of lines from origin
+- and a line of length dot, on orientation of shorter (?)
+
+On Thus, orthogonal are zero -> means zero projection, ie. right angles (generalised to n dim)
+
+- graphs: as above, where orthogonal
+
+### Angles
+
+Dot product (in 2d?) is also product of magntidue times cos angle.
+
+- graph of cos in left facet, vs two lines on right
+
+CAn thus see its the angel falling to zero that drives orthog to zero
+
+As suhc, given cos(0) = 1, can see that dot self is just squared magnitude, ie. l2 norm.
+
+### Unit sphere
+
+The set of vectors with unit norm falls on a (hyper) sphere:
+
+- example 2d: unit norm points
+
+And 3d:
+
+- example 3d: unit norm points
+
+### Matrix multiplication
+
+Matrix multiplication is just lots of dot product, lots of little projections
+
+- facet row col of each of the spearate dots in a mat mul
+
+I like to think of it as shooting particles in one direction, onto something with a 'deflector' in the other direction: result = projection
+
+As such, a matrix of all orthogonal vectors multiplied by itself will be zero everywhere other than the main diagonal
+
+- heatmap examples as below
+
+### Orthogonal matrices
+
+If the norm of each vector is also one (they are not just orthogonal but orthonormal), we say the matrix itself is orthogonal, and X T X = I
+
+- heatmap of values (eg. for a few samples, so a few such)
+
+For instance, the matrix of unit basis vectors is orthogonal, and sit as points on the sphere:
+
+- unit basis vectors: lines from origin
+
+### Isometry
+
+More generally, the set of orthonormal matrix members, are all rotations of same fixed shape (right angle), on that same unit sphere.
+
+- graph 3d: lines from origin, color coded by sample index
+
+Geometrically, one can thus see how each orthonormal matrix is a rotated version of the unit basis vector.
+
+That is to say, for any two orthogonal matrices, there is a rotation F that gets us from one to the other.
+
+- code using linalg solve, heatmap of resulting rotation (and line representation)
+
+This then gives intuition for their own use as 'basis vectors': all just different rotations of unit vector
+
+### Orthogonal . Orthogonal
+
+Further, if we multiply one orthogonal matrix by another, we get another orthogonal matrix as result.
+
+- two unit sphere line graphs
+
+- projection graph
+
+Algebra (in code) is below:
+
+- heatmap of result of code
+
+### Rotation
+
+More generally, we can see that any orothongal matrix itself is just a rotation:
+
+- origin line graph of othog, and thne applied to some random samples (before after on same chart)
+
+Which does not re-scale the vectors (plot their l2 norm before and after)
+
+- l2 norm
+
+And we can see it preserves the angels between the original matrix (just rotates the whole thing):
+
+- line chart of post matmul angles
+
+This is useful, ... separate out the rotation from the scaling in a decomposition like pca or svd
+
+### Inverse = Transpose
+
+If X T X = I, then Xt must equal X -1 (by definition), so - the inverse of an orthonormal matrix is just it's transpose.
+
+- code and heatmap of matmul
+
+We can get some inution for this, by line plot:
+
+- origin line of each vector
+
+- and each vector transpose
+
+This is useful, because ...
+
+### Next steps
+
+See ... for use in ppca. 
