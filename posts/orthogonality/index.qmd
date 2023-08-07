@@ -1,14 +1,14 @@
 ---
-title: "Example: Linear regression"
+title: "Intuition: Orthogonality"
 author: "Tom Williams"
-date: "2023-07-31"
+date: "2023-08-07"
 categories: []
 draft: false
 execute:
   daemon: false
 ---
 
-This post is a (somewhat eclectic) combination of little experiments, intended to help build up intuition about the notion of vector / matrix orthogonality.
+This post is a collection of little visualisations intended to help one build up intuition for the notions of vector and matrix orthogonality.
 
 ```{python}
 #| echo: false
@@ -32,9 +32,8 @@ os.environ["MODULE"] = "c:/hc/src/"
 #| code-summary: "Imports"
 import numpy
 import pandas
-
 import jax
-import jax.numpy
+import jaxopt
 
 import xtuples as xt
 import xfactors as xf
@@ -42,117 +41,335 @@ import xfactors as xf
 
 ### Orthogonal vectors
 
-Orthogonal if dot product is zero
+Two vectors are orthogonal to one another if their dot product is zero.
 
-- dummy is_orthog func
+```{python}
+#| code-fold: false
+#| code-summary: "Dot"
+def dot(x1, x2):
+    return sum([v1 * v2 for v1, v2 in zip(x1, x2)])
+```
 
-Dot product is size of projection of one on another
+The dot product of two vectors gives the magnitude of the projection of one onto the other.
 
-- graphs: facet a few pairs of lines from origin
-- and a line of length dot, on orientation of shorter (?)
+Visually, this represents the length of the shadow that one vector casts on the other (if both are drawn as rays from the origin).
 
-On Thus, orthogonal are zero -> means zero projection, ie. right angles (generalised to n dim)
+```{python}
+#| code-fold: false
+#| code-summary: "Unit Vector Projection"
+def unit_vector_projection(v, unit_v):
+    dot = jax.numpy.dot(v, unit_v)
+    return dot * unit_v, unit_v * jax.numpy.sign(v)
+```
 
-- graphs: as above, where orthogonal
+To visualise this, we can plot the dot product of a set of random unit magnitude 2d vectors, with the 2d basis vectors of the same component signs:
 
-### Angles
+```{python}
+#| code-fold: false
+#| code-summary: "Unit Vector Plot"
+def unit_vector_plot(rows, cols):
+    unit_v = jax.numpy.eye(2)
+    return xf.graphs.vector_ray_plot(
+        xt.iTuple.range(rows)
+        .map(lambda _: xt.iTuple.range(cols).map(
+            lambda _: (
+                lambda v: jax.numpy.stack([
+                    v,
+                    *unit_vector_projection(v, unit_v[0]),
+                    *unit_vector_projection(v, unit_v[1]),
+                ])
+            )(xf.rand.norm_gaussian((2,)))
+        )),
+        markers=True,
+        color=None,
+    )
+```
 
-Dot product (in 2d?) is also product of magntidue times cos angle.
+Where the marker part-way along each basis vector (pointing along the x or y axis), is placed at the dot product of said basis vector with the respective random unit vector:
 
-- graph of cos in left facet, vs two lines on right
+```{python}
+#| code-fold: false
+#| code-summary: "Unit Vector Plot"
+unit_vector_plot(3, 3)
+```
 
-CAn thus see its the angel falling to zero that drives orthog to zero
+As one can see, given their magnitudes, the larger the dot product of two vectors, the closer they are to pointing in the same direction.
 
-As suhc, given cos(0) = 1, can see that dot self is just squared magnitude, ie. l2 norm.
+Conversely, the smaller their dot product, the closer they are to perpendicular.
+
+We can make this more explicit by noting that the dot product is equal to the product of the magnitude of the two vectors and the cosine of the angle between them.
+
+As such, a zero dot product indicates that the angle between the two vectors is pi / 2 radians (or 90 degrees) - ie. that they're perpendicular to one another.
+
+Similarly, as cos(0) = 1, the dot product of a vector with itself is simply equal to it's squared magnitude.
 
 ### Unit sphere
 
-The set of vectors with unit norm falls on a (hyper) sphere:
+The set of all 2D vectors of unit magnitude forms a circle:
 
-- example 2d: unit norm points
+```{python}
+#| code-fold: false
+#| code-summary: "Unit Sphere - 2D"
+xf.graphs.vector_ray_plot(
+    xf.rand.norm_gaussian((25, 2,)),
+    color=None,
+)
+```
 
-And 3d:
+The set of all 3D unit vectors forms a sphere:
 
-- example 3d: unit norm points
+```{python}
+#| code-fold: false
+#| code-summary: "Unit Sphere - 3D"
+xf.graphs.vector_ray_plot(
+    xf.rand.norm_gaussian((25, 3,)),
+    _3d=True,
+    color=None,
+)
+```
 
-### Matrix multiplication
-
-Matrix multiplication is just lots of dot product, lots of little projections
-
-- facet row col of each of the spearate dots in a mat mul
-
-I like to think of it as shooting particles in one direction, onto something with a 'deflector' in the other direction: result = projection
-
-As such, a matrix of all orthogonal vectors multiplied by itself will be zero everywhere other than the main diagonal
-
-- heatmap examples as below
+And so on into higher dimensions.
 
 ### Orthogonal matrices
 
-If the norm of each vector is also one (they are not just orthogonal but orthonormal), we say the matrix itself is orthogonal, and X T X = I
+If two vectors are both unit norm and orthogonal to one another, then we say that they are orthonormal.
 
-- heatmap of values (eg. for a few samples, so a few such)
+If each of the vectors in a square matrix is orthonormal w.r.t. each of the others, we say that the matrix is orthogonal.
 
-For instance, the matrix of unit basis vectors is orthogonal, and sit as points on the sphere:
+As such, we can see that:
 
-- unit basis vectors: lines from origin
+- each orthogonal matrix is a rotation of the equivalent dimensionality basis vector matrix.
+- the columns / rows of each orthogonal matrix sit on the relevant dimensionality unit (hyper) sphere.
 
-### Isometry
+For instance, in two dimensions, each of the colored pairs of vectors in the below is just a rotation of the blue unit basis vectors (along the x, y axes), around our unit circle:
 
-More generally, the set of orthonormal matrix members, are all rotations of same fixed shape (right angle), on that same unit sphere.
+```{python}
+#| code-fold: false
+#| code-summary: "Basis Vectors - 2D"
+xf.graphs.vector_ray_plot(
+    numpy.concatenate([
+        numpy.expand_dims(numpy.eye(2), 0),
+        xf.rand.orthogonal(2, shape = (5,))
+    ]),
+    color="g",
+)
+```
 
-- graph 3d: lines from origin, color coded by sample index
+And, in three dimensions, each of the colored triplets of vectors in the below is just a rotation of the blue unit basis vectors (along the x, y, z axes), around our unit sphere:
 
-Geometrically, one can thus see how each orthonormal matrix is a rotated version of the unit basis vector.
+```{python}
+#| code-fold: false
+#| code-summary: "Basis Vectors - 3D"
+xf.graphs.vector_ray_plot(
+    numpy.concatenate([
+        numpy.expand_dims(numpy.eye(3), 0),
+        xf.rand.orthogonal(3, shape = (5,))
+    ]),
+    _3d=True,
+    color="g",
+)
+```
 
-That is to say, for any two orthogonal matrices, there is a rotation F that gets us from one to the other.
+We can thus interpret an orthogonal matrix as a rotation, mapping us from a space in which our axes point in the directions of our basis vectors, to a space in which our axes point in the directions of our matrix.
 
-- code using linalg solve, heatmap of resulting rotation (and line representation)
+### Matrix multiplication
 
-This then gives intuition for their own use as 'basis vectors': all just different rotations of unit vector
+A matrix multiplication is just lots of separate dot products.
 
-### Orthogonal . Orthogonal
+In terms of the above, it is the size of the shadow cast by each row of the left matrix, on each column of the right matrix.
 
-Further, if we multiply one orthogonal matrix by another, we get another orthogonal matrix as result.
+I like to think of it as shooting particles in the directions and magnitudes of the rows of the left matrix, onto 'deflectors' with the orientation and magnitudes of the columns of the right matrix.
 
-- two unit sphere line graphs
+For instance, given a couple of random unit norm matrices:
 
-- projection graph
+```{python}
+#| code-fold: false
+#| code-summary: "Random matrices"
+N = 2
+M1 = xf.rand.norm_gaussian((N, N,))
+M2 = xf.rand.norm_gaussian((N, N,))
+def render_matrix(m):
+    return xf.rendering.render_df_color_range(
+        pandas.DataFrame(m),
+        v_min=-1.,
+        v_max=.1,
+    )
+display(render_matrix(M1))
+display(render_matrix(M2))
+```
 
-Algebra (in code) is below:
+We can plot out each of the separate dot product projections, akin to how we did above, as so:
 
-- heatmap of result of code
+```{python}
+#| code-fold: false
+#| code-summary: "MatMul as Vector Projection"
+def vector_projection(v1, v2):
+    dot = jax.numpy.dot(v1, v2)
+    return abs(dot) * v2, v2
+
+xf.graphs.vector_ray_plot(
+    [
+        [
+            numpy.stack([
+                M1[r],
+                *vector_projection(M1[r], M2[:, c]),
+            ])
+            for c in range(N)
+        ]
+        for r in range(N)
+    ],
+    share_x=True,
+    share_y=True,
+    markers=True,
+    color=None,
+)
+```
+
+Before comparing the magnitude of the projections above (how far they are from the origin), to the cells of the below:
+
+```{python}
+#| code-fold: false
+#| code-summary: "MatMul"
+render_matrix(numpy.matmul(M1, M2))
+```
+
+Confirming that each cell of the matrix multiplication is just the magnitude of the projection of the relevant row / column of our input matrices.
+
+### Orthogonality constraint
+
+Given the definition of an orthogonal matrix, we can see that multiplication by its transpose will return the relevant size identity matrix: 
+
+- each of the pairs outside of the main diagonal are orthogonal, and so will return a dot product zero.
+- each pair in the main diagonal will just be the dot product of a unit norm vector with itself: ie. 1.
+
+```{python}
+#| code-fold: false
+#| code-summary: "XX.T"
+M_orth = xf.rand.orthogonal(2)
+render_matrix(numpy.matmul(M_orth, M_orth.T))
+```
+
+As such, we can construct a rough measure for how orthogonal a given matrix is: the mean squared error between the matmul of a matrix with its transpose, and the relevant size identity matrix.
+
+```{python}
+#| code-fold: false
+#| code-summary: "Orthogonality loss"
+def orthogonality_loss(X):
+    XXt = jax.numpy.matmul(X, X.T)
+    I = jax.numpy.eye(XXt.shape[0])
+    return jax.numpy.square(XXt - I).mean()
+```
+
+We can then 'orthogonalise' a matrix using gradient descent, by minisiming this loss function:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Orthogonalise"
+def orthogonalise(X):
+    solver = jaxopt.GradientDescent(fun=orthogonality_loss)
+    res = solver.run(X)
+    params, state = res
+    return params
+```
+
+Which we can use on each of our random matrices above, as so:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Orthogonalised Matrices"
+M1_orth = orthogonalise(M1)
+M2_orth = orthogonalise(M2)
+xf.graphs.vector_ray_plot(
+    [
+        numpy.stack([M_orig, M_orth])
+        for M_orig, M_orth in zip([M1, M2], [M1_orth, M2_orth])
+    ],
+    markers=True,
+    color="g",
+)
+```
+
+As you can see, the non-orthogonal blue matrix has been morphed into the orthogonal red matrix.
+
+We can verify their orthogonality by taking their matmul with their transpose:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Orthognalised confirmation"
+display(render_matrix(numpy.matmul(M1_orth, M1_orth.T)))
+display(render_matrix(numpy.matmul(M2_orth, M2_orth.T)))
+```
+
+And confirming that we're left with the relevant size identity matrix.
 
 ### Rotation
 
-More generally, we can see that any orothongal matrix itself is just a rotation:
+Turning back to the interpretation of an orthogonal matrix as a rotation, let's now plot the transformation of a bunch of random points by each of our two orthogonal matrices.
 
-- origin line graph of othog, and thne applied to some random samples (before after on same chart)
+```{python}
+#| code-fold: false
+#| code-summary: "Point Cloud"
+cloud = xf.rand.gaussian((10, 2,))
+def plot_cloud(M_, T = False):
+    return xf.graphs.vector_ray_plot(
+        [
+            [
+                cloud, M_, numpy.matmul(cloud, M_),
+            ] + ([] if not T else [
+                M_.T,
+                numpy.matmul(numpy.matmul(cloud, M_), M_.T)
+            ])
+        ],
+        markers=True,
+        range_x=[-3., 3.],
+        range_y=[-3., 3.],
+    )
+```
 
-Which does not re-scale the vectors (plot their l2 norm before and after)
+Where the left graph is our point cloud, the middle is our orthogonal rotation matrix, and the right is the point cloud after rotation by said matrix:
 
-- l2 norm
+```{python}
+#| code-fold: false
+#| code-summary: "Cloud: M1"
+plot_cloud(M1_orth)
+```
 
-And we can see it preserves the angels between the original matrix (just rotates the whole thing):
+```{python}
+#| code-fold: false
+#| code-summary: "Cloud: M2"
+plot_cloud(M2_orth)
+```
 
-- line chart of post matmul angles
+As one can see:
 
-This is useful, ... separate out the rotation from the scaling in a decomposition like pca or svd
+- the magnitude of each member of our cloud has been preserved (they're the same length relative to the origin)
+- the angles between each member of our cloud have been preserved (pick a pair of colors, and compare their angles in left vs right).
 
-### Inverse = Transpose
+Confirming that (our) orthogonal matrices represent a scale and angle preserving rotation.
 
-If X T X = I, then Xt must equal X -1 (by definition), so - the inverse of an orthonormal matrix is just it's transpose.
+### Transpose and Inverse
 
-- code and heatmap of matmul
+As we saw above, multiplying an orthogonal matrix by its transpose leaves us with the identity matrix. 
 
-We can get some inution for this, by line plot:
+As such, an orthogonal matrix's tranpose must be equal to its inverse: as M M.T = I = M M-1.
 
-- origin line of each vector
+We can confirm this by rotating our point cloud back, by multiplication with M.T:
 
-- and each vector transpose
+```{python}
+#| code-fold: false
+#| code-summary: "Cloud: M1"
+plot_cloud(M1_orth, T = True)
+```
 
-This is useful, because ...
+We can find some intuition for this in terms of our interpretation of an orthogonal matrix, above, as a scale-preserving rotation.
+
+Roughly speaking:
+
+- the inverse of a matrix 'reverses' the linear transformation induced by multiplication by said matrix.
+- the transpose of a matrix reflects a rotation on the main diagonal, forming the 'opposite' reflection.
+
+This 'opposite' reflection just reverses our original rotation - taking us from our point cloud on the left, back to itself on the right - and is hence our matrix inverse.
 
 ### Next steps
 
-See ... for use in ppca. 
+Orthogonality is key to understanding [PCA](../pca/index.qmd), and is how we derive the closed form expression for multi-variate [linear regression](../linreg/index.qmd).

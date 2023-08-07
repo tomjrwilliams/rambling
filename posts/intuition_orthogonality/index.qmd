@@ -1,6 +1,0 @@
-
-demonstrate why dot product zero -> orthogonal
-
-what orthogonal implies in covar space
-
-eventually build up to parametrised degree of non orthogonality

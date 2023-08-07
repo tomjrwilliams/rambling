@@ -3,7 +3,7 @@ title: "Wiggles be gone"
 author: "Tom Williams"
 date: "2023-03-04"
 categories: []
-draft: false
+draft: true
 ---
 
 A few times recently, I've found myself in need of a differentiable loss function that can be used to smooth out a given time series.

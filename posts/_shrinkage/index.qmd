@@ -1,0 +1,7 @@
+compare cov shrinkage
+
+under equal weighted equity index
+
+a la wolf
+
+versus shrinkage by pc1

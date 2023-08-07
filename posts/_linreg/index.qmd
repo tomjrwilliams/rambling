@@ -3,7 +3,7 @@ title: "Example: Linear regression"
 author: "Tom Williams"
 date: "2023-07-31"
 categories: []
-draft: false
+draft: true
 execute:
   daemon: false
 ---
@@ -237,7 +237,7 @@ With only one stage (on top of the input stage, that every model has):
 ```{python}
 #| code-fold: false
 #| code-summary: "Stages - Init"
-STAGES, model = model.init_stages(1)
+model, STAGES = model.init_stages(1)
 STAGES
 ```
 
@@ -249,7 +249,7 @@ We'll unpack our stage integers for clarity:
 INPUT, REGRESS = STAGES
 ```
 
-### Inputs && Locations
+### Inputs & Locations
 
 We'll specify that our model should take two dataframes as inputs (for our feature and observation matrices, respectively):
 
@@ -257,8 +257,7 @@ We'll specify that our model should take two dataframes as inputs (for our featu
 #| code-fold: false
 #| code-summary: "Model - Inputs"
 model = (
-    xf.Model()
-    .add_input(xf.inputs.Input_DataFrame_Wide())
+    model.add_input(xf.inputs.Input_DataFrame_Wide())
     .add_input(xf.inputs.Input_DataFrame_Wide())
 )
 ```
@@ -387,7 +386,7 @@ data = (
     noise_df,
     outputs_df,
 )
-model, init_params, init_results, objective, apply = model.build(data)
+model, objective = model.build(data)
 ```
 
 To fit our params, we then call model.optimise():
@@ -395,9 +394,8 @@ To fit our params, we then call model.optimise():
 ```{python}
 #| code-fold: false
 #| code-summary: "Model"
-model, params = model.optimise(
-    init_params, init_results, objective, verbose=False
-)
+model = model.optimise(objective, verbose=False)
+params = model.params
 ```
 
 And then to apply our model to new (or in this case, old, data), we simply use apply():
@@ -405,7 +403,7 @@ And then to apply our model to new (or in this case, old, data), we simply use a
 ```{python}
 #| code-fold: false
 #| code-summary: "Model"
-results = apply(params, data)
+results = model.apply(data)
 results_df = pandas.DataFrame(
     results[REGRESS][0],
     columns=outputs_df.columns,

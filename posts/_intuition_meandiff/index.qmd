@@ -3,7 +3,7 @@ title: "Intuition: Mean diff"
 author: "Tom Williams"
 date: "2023-07-17"
 categories: []
-draft: false
+draft: true
 execute:
   daemon: false
 ---

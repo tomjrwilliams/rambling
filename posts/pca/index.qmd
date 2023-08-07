@@ -1,0 +1,113 @@
+---
+title: "Background: PCA"
+author: "Tom Williams"
+date: "2023-08-08"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+This ...
+
+### Generative model
+
+generative model
+
+assume some independent unit noise - factors
+
+and some betas
+
+observations
+
+### Problem statement
+
+Given observations
+
+Assuming distrinbution of, but not known values of factors
+
+What are betas
+
+### Principal directions
+
+What happened with betas (plot point cluster)
+
+Scaling, rotation
+
+What we're trying to reproduce, is the factors:
+
+Gaussian cluster (original)
+
+Ie. we're trying to de-scale, de rotate
+
+So, to reproduce that transofmration, what we're looking for is a rotation matrix - orthogonal - and a diagonal scaling matrix.
+
+Where our rotation takes us from the basis vector axes of our factor, to the rotated max spread of our observations.
+
+Diagonal scaling matrix then re-scales.
+
+### Covariance
+
+covariacne under linear transformation is ...
+
+intuition as:
+
+projection, how much scale chnages (multuiploy)
+
+then re-apply the rotation (so X ... Xt)
+
+new covariance
+
+We can rewrite that in terms of the orthogonal and diagonal as so:
+
+Cov = (orthog diag) cov_orig (orthog diag).T
+
+### Eigen vectors
+
+We can rewrite this:
+
+Cov orthog = orthog diag cov (orthog diag).T orthog
+
+Given orthog .T orthog = I:
+
+cov orthog = orthog diag cov diag
+
+Given our original assumption, our starting cov is also diagonal, so:
+
+Cov orthog = orthog diag diag diag
+
+Cov orthog = orthog diag
+
+That is to say, scaling our covarianc ematrix by our orthogonal weioghts, just rescales the weights, that is: they're eigenvalues
+
+### Solution
+
+As such, to find the weights, just eigen-decompose.
+
+Weights
+
+Eigen values give the scaling terms (or the origiainl variances).
+
+Eignvalues
+
+To get betas, we just combine the rotation and scaling matrices:
+
+betas
+
+Which we can check as so:
+
+### Back and forth
+
+Worth looking at what the weights are (not the eigenvalue adjusted loadings).
+
+So, in beta representation, takes us from factors up to features.
+
+But, in the other, it says the factors themselves are linear combinations of the features.
+
+MSE minimising given the above.
+
+### Next steps
+
+Here, apply to equity returns.
+
+Here, apply to rates curves.

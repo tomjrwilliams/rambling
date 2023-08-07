@@ -3,7 +3,7 @@ title: "Example: PCA & PPCA"
 author: "Tom Williams"
 date: "2023-07-31"
 categories: []
-draft: false
+draft: true
 execute:
   daemon: false
 ---
@@ -226,7 +226,7 @@ Given the factors, can mat mul back up, compare to obs:
 
 - 
 
-To see that they're essentially betas.
+To see that they match (?) the original generating weights.
 
 ## Next steps
 
