@@ -30,10 +30,12 @@ os.environ["MODULE"] = "c:/hc/src/"
 ```{python}
 #| code-fold: false
 #| code-summary: "Imports"
+import operator
 import numpy
 import pandas
 import jax
 import jaxopt
+import latexify
 
 import xtuples as xt
 import xfactors as xf
@@ -41,13 +43,16 @@ import xfactors as xf
 
 ### Orthogonal vectors
 
-Two vectors are orthogonal to one another if their dot product is zero.
+Two vectors are orthogonal to one another if their dot product is zero, where the dot product is as below (forgive the slightly odd formulation - I'm still getting the hang of latexify).
 
 ```{python}
-#| code-fold: false
+#| echo: false
+#| code-fold: true
 #| code-summary: "Dot"
+@latexify.function
 def dot(x1, x2):
-    return sum([v1 * v2 for v1, v2 in zip(x1, x2)])
+    return sum(map(operator.product, x1, x2))
+dot
 ```
 
 The dot product of two vectors gives the magnitude of the projection of one onto the other.

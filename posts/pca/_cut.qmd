@@ -1,0 +1,25 @@
+
+From this, we can see that we've also rescaled our data from the unit variance above, which we can confirm by plotting our 1D unconditional feature densities:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Density: 1D"
+xf.graphs.df_line_chart(
+    xf.densities.gaussian_kde_1d_df(
+        {
+            i: features[:, i]
+            for i in range(N_FEATURES)
+        },
+    ),
+    x="position",
+    y="density",
+    color="key",
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+
+```

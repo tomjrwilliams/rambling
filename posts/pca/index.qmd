@@ -1,5 +1,5 @@
 ---
-title: "Background: PCA"
+title: "Intuition: PCA"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,106 +8,437 @@ execute:
   daemon: false
 ---
 
-This ...
+This is a reference post on PCA in which we walk through a toy example using random data, to help one build intuition for the geometry involved.
+
+```{python}
+#| echo: false
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/xfactors/src")
+sys.path.append("C:/hc/xtuples/src")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import operator
+import numpy
+import pandas
+import jax
+import jaxopt
+
+import xtuples as xt
+import xfactors as xf
+```
 
 ### Generative model
 
-generative model
+We'll start by defining our example data, assuming a 3D latent factor space, a 4D feature space, and 100 example data points:
 
-assume some independent unit noise - factors
+```{python}
+#| code-fold: false
+#| code-summary: "Shapes"
+N_FACTORS = 3
+FACTORS = list(range(N_FACTORS))
 
-and some betas
+N_SAMPLES = 100
+SAMPLES = list(range(N_SAMPLES))
 
-observations
+N_FEATURES = 4
+FEATURES = list(range(N_FEATURES))
+```
 
-### Problem statement
+#### Factors
 
-Given observations
+First, we'll generate some random, diagonal covariance, gaussian noise, that we'll refer to as our 'factors':
 
-Assuming distrinbution of, but not known values of factors
+```{python}
+#| code-fold: false
+#| code-summary: "Factors"
+factors = xf.rand.gaussian((N_SAMPLES, N_FACTORS))
+factors_df = pandas.DataFrame(
+    factors, index=SAMPLES, columns=FACTORS,
+)
+```
 
-What are betas
+As we can see, the sample covariance is (roughly), unit diagonal:
 
-### Principal directions
+```{python}
+#| code-fold: false
+#| code-summary: "Factor Covariance"
+xf.rendering.render_df_color_range(factors_df.cov())
+```
 
-What happened with betas (plot point cluster)
+The covariance between two variables increases (decreases) the more one variable is above (below) it's mean, conditional on the other variable also being above it's mean.
 
-Scaling, rotation
+As such, if we plot our individual factors against one another in 2D we can see their zero-covariance, in the spherical shape of the resulting densities:
 
-What we're trying to reproduce, is the factors:
+```{python}
+#| code-fold: false
+#| code-summary: "Factor Density: 2D"
+xf.graphs.df_density_pair_chart(factors_df, key="factor")
+```
 
-Gaussian cluster (original)
+Simply follow either the x or y axis, and note that the conditional average of the other axis (the other variable) remains constant: implying (roughly) zero covariance.
 
-Ie. we're trying to de-scale, de rotate
+If we plot the 1D density, we can see that each factor also has (roughly) the same unit variance gaussian distribution:
 
-So, to reproduce that transofmration, what we're looking for is a rotation matrix - orthogonal - and a diagonal scaling matrix.
+```{python}
+#| code-fold: false
+#| code-summary: "Factor Density: 1D"
+xf.graphs.df_line_chart(
+    xf.densities.gaussian_kde_1d_df(
+        {
+            i: factors[:, i]
+            for i in range(N_FACTORS)
+        },
+    ),
+    x="position",
+    y="density",
+    color="key",
+)
+```
 
-Where our rotation takes us from the basis vector axes of our factor, to the rotated max spread of our observations.
+#### Features
 
-Diagonal scaling matrix then re-scales.
+Given this, we'll now generate another random gaussian weight matrix:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Betas"
+weights = xf.rand.gaussian((N_FACTORS, N_FEATURES))
+```
+
+Which we can render as so:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Betas"
+weights_df = pandas.DataFrame(
+    weights, columns=FEATURES, index=FACTORS
+)
+xf.rendering.render_df_color_range(weights_df)
+```
+
+And which we'll then multiply with our factors, to get some features:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features"
+features = factors @ weights
+features_df = pandas.DataFrame(
+    features, columns=FEATURES, index=SAMPLES
+)
+```
+
+As one can see in the resulting 2D density plot, we've now added some linear dependence to our dataset:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Density: 2D"
+for chart in xf.graphs.df_density_pair_chart(
+    features_df, key="feature", separate=True
+):
+    display(chart)
+```
+
+Which we can confirm by calculating our feature (sample) covariance matrix:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Covariance"
+xf.rendering.render_df_color_range(features_df.cov())
+```
+
+#### Problem statement
+
+Given our feature matrix, and assuming the distribution of our factors (but not the values), our goal is to impute sensible values for both the weights and the factors.
+
+### Rotation and Scaling
+
+Visually, we can separate out the distributional changes affected by our weight matrix into two steps:
+
+- a rescaling
+- a rotation
+
+So, to reverse our weight matrix (taking us from features back to factors), we presumably need to:
+
+- un-rotate our features, so that - in terms of the 2D densities above - they 'sit' back on the original x, y axes.
+- de-scale them back to unit variance.
+
+To visualise this, we can cheat slightly and, assuming the methodology we're in the process of deriving, de-rotate those 2D densities from above:
+
+```{python}
+#| code-fold: true
+#| code-summary: "De-Rotate"
+def threshold(df, k, quantile):
+    return df[df[k] > numpy.quantile(df[k], quantile)]
+
+def de_rotate(df):
+    df = xf.graphs.f_df_density_pair_df(
+        FEATURES, "pair",
+    )(df)
+    z = "density"
+    dfs = {
+        pair: df[df["pair"] == pair]
+        for pair in df["pair"].unique()
+    }
+    dfs_threshold = {
+        pair: threshold(_df, z, .7)
+        for pair, _df in dfs.items()
+    }
+    ws = {
+        pair: jax.numpy.linalg.eig(
+            jax.numpy.cov(numpy.stack([
+                _df["x"].values, _df["y"].values
+            ]))
+        )[1].real
+        for pair, _df in dfs_threshold.items()
+    }
+    return [
+        pandas.DataFrame(
+            numpy.matmul(
+                _df[["x", "y"]].values, ws[pair]
+            ),
+            columns=["x", "y"],
+            index=_df.index,
+        ).assign(density=numpy.exp(_df[z]), pair=_df["pair"])
+        for pair, _df in dfs.items()
+    ]
+```
+
+Which we'll plot with separate color scales, so you can see more clearly how the density is now aligned with the conventional x, y axes:
+
+```{python}
+#| code-fold: false
+#| code-summary: "De-Rotated Features"
+for derotated_df in de_rotate(features_df):
+    display(xf.graphs.df_scatter_chart(
+        derotated_df,
+        x="x",
+        y="y",
+        color="density",
+        height=400,
+        width=600,
+    ))
+```
+
+As one can see, where the distributions are non-spherical, they now 'point' out along the conventional x, y axes.
+
+Where they were roughly spherical to begin with, the rotation hasn't actually changed the (bi-variate) distribution, as a sphere is invariant under rotation.
+
+Then, to get back to our factors, we simply have to re-scale the de-rotated distributions above, back to unit variance.
+
+#### Solution
+
+Linear transformations are composable, which means that we can separate out these two steps into separate matrices, before multiplying them back together (to get a single embedding matrix).
+
+So, to go from features to factors, we're looking for two matrices:
+
+- one to de-rotate our features back into factors.
+- one to de-scale our factors back to unit variance.
+
+A scaling matrix just stretches each dimension individually, so we can presume that to be (non-unit) diagonal.
+
+Assuming we use an [orthogonal](../orthogonality/index.qmd) rotation matrix, we can use the same matrix to rotate back and forth between our features and our factors.
+
+As such, we're looking for: 
+
+- an orthogonal rotation matrix
+- a diagonal scaling matrix.
 
 ### Covariance
 
-covariacne under linear transformation is ...
+Covariance under a linear transformation is defined as so:
 
-intuition as:
+```{python}
+#| code-fold: false
+#| code-summary: "Covariance under linear transformation"
+def linear_cov(W, X):
+    return W @ numpy.cov(X) @ W.T
+```
 
-projection, how much scale chnages (multuiploy)
+As we saw above, we're going to assume that we can model our weight matrix as the product of an orthogonal rotation matrix, and a diagonal scaling matrix.
 
-then re-apply the rotation (so X ... Xt)
+As such, we can write our covariance function (for our features), as so:
 
-new covariance
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Covariance"
+def feature_cov(Orthog, Diag, X):
+    return (Orthog @ Diag) @ numpy.cov(X) @ (Orthog @ Diag).T
+```
 
-We can rewrite that in terms of the orthogonal and diagonal as so:
+Which we can simplify to:
 
-Cov = (orthog diag) cov_orig (orthog diag).T
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Covariance"
+def feature_cov(Orthog, Diag, X):
+    return Orthog @ numpy.cov(X) @ (Diag ** 2) @ Orthog.T
+```
+
+This, intuitively, makes sense:
+
+- First we multiply our factor covariance by the square of our scaling matrix, as (co) variance is a quadratic dispersion measure.
+- Then, we multiply through by our rotation matrix, twice: one to capture any change in scale from the projection itself, and then once to actually apply the rotation in question.
 
 ### Eigen vectors
 
-We can rewrite this:
+Given our assumption that the factors have diagonal covariance, we can make one further simplication to the above:
 
-Cov orthog = orthog diag cov (orthog diag).T orthog
+```{python}
+#| code-fold: false
+#| code-summary: "Feature Covariance"
+def feature_cov(Orthog, Diag, X):
+    return Orthog @ numpy.diag(numpy.cov(X)) @ (Diag ** 2) @ Orthog.T
+```
 
-Given orthog .T orthog = I:
+If we right multiply through both sides by our rotation matrix:
 
-cov orthog = orthog diag cov diag
+```{python}
+#| code-fold: false
+#| code-summary: "Rotated Covariance"
+def rotated_feature_cov(Orthog, Diag, X, features):
+    return numpy.cov(features) @ Orthog == (
+        Orthog @ numpy.diag(numpy.cov(X)) @ (Diag ** 2)
+        @ Orthog.T @ Orthog
+    )
+```
 
-Given our original assumption, our starting cov is also diagonal, so:
+The Orthog.T @ Orthog term (on the far right) cancels to I.
 
-Cov orthog = orthog diag diag diag
+```{python}
+#| code-fold: false
+#| code-summary: "Rotated Covariance"
+def rotated_feature_cov(Orthog, Diag, X, features):
+    return numpy.cov(features) @ Orthog == (
+        Orthog @ numpy.diag(numpy.cov(X)) @ (Diag ** 2)
+    )
+```
 
-Cov orthog = orthog diag
+As such, we can see that multiplication of our feature covariance by each of the vectors in our rotation matrix simply returns a scaled version of said vector, with the scaling term given by the relevant diagonal element in diag(cov(X)) @ (Diag ** 2).
 
-That is to say, scaling our covarianc ematrix by our orthogonal weioghts, just rescales the weights, that is: they're eigenvalues
+This, in turn, then tells us that our rotation matrix is in fact comprised of [eigenvectors](https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors) of our feature covariance matrix.
+
+Given that our factor distributions were assumed to have unit variance, we can then also see that the diagonal scaling matrix we're looking for is simply comprised of the square root of the respective eigenvalues.
 
 ### Solution
 
-As such, to find the weights, just eigen-decompose.
+As such, to find our matrices Orthog and Diag we simply need to do an eigen-decomposition of our feature covariance matrix, which we can do as so:
 
-Weights
+```{python}
+#| code-fold: false
+#| code-summary: "Solution"
+eigvals, eigvecs = jax.numpy.linalg.eig(
+    jax.numpy.cov(features.T)
+)
+scale = jax.numpy.sqrt(eigvals.real)
+orthog = eigvecs.real
+```
 
-Eigen values give the scaling terms (or the origiainl variances).
+As one can see, we're only left with 3 (roughly) non-zero eigenvalues:
 
-Eignvalues
+```{python}
+#| code-fold: false
+#| code-summary: "Eigenvalues"
+numpy.round(eigvals.real, 2)
+```
 
-To get betas, we just combine the rotation and scaling matrices:
+These capture the degree of variation in the feature space, explained by each component (how 'spread' out the features are along the axis given by the relevant eigenvector).
 
-betas
+As such, we can then first sort our matrices by their eigenvalue, before disregarding the smallest.
 
-Which we can check as so:
+Here, we're assuming we know how many latent factors there were (so we keep only the first N_FACTORS components), but in a more general problem, we could infer this number by the count of non (nearly) zero eigenvalues.
 
-### Back and forth
+```{python}
+#| code-fold: false
+#| code-summary: "Eigenvalues"
+order = jax.numpy.flip(jax.numpy.argsort(eigvals))
+scale = scale[order][:N_FACTORS]
+orthog = orthog[:, order[:N_FACTORS]]
+```
 
-Worth looking at what the weights are (not the eigenvalue adjusted loadings).
+We can de-rotate our features into factor space, by multiplication with our orthogonal rotation matrix, as so:
 
-So, in beta representation, takes us from factors up to features.
+```{python}
+#| code-fold: false
+#| code-summary: "Factors - Scaled"
+factors_scaled = features @ orthog
+xf.graphs.df_density_pair_chart(
+    pandas.DataFrame(
+        factors_scaled,
+        columns=FACTORS,
+        index=SAMPLES,
+    ), 
+    key="factor"
+)
+```
 
-But, in the other, it says the factors themselves are linear combinations of the features.
+Before de-scaling them, leaving us with our original unit variance noise, by dividing by the sqrt of the eigenvalues:
 
-MSE minimising given the above.
+```{python}
+#| code-fold: false
+#| code-summary: "Factors - Descaled"
+factors_descaled = numpy.divide(
+    factors_scaled,
+    xf.expand_dims(scale, 0, 1)
+)
+xf.graphs.df_density_pair_chart(
+    pandas.DataFrame(
+        factors_descaled,
+        columns=FACTORS,
+        index=SAMPLES,
+    ), 
+    key="factor"
+)
+```
+
+To go back up to our features, we can simply re-scale up the factors, and then rotate back into feature space:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Features - Roundtrip"
+features_roundtrip = orthog @ numpy.multiply(
+    factors_descaled,
+    xf.expand_dims(scale, 0, 1)
+).T
+for chart in xf.graphs.df_density_pair_chart(
+    pandas.DataFrame(
+        features_roundtrip.T,
+        columns=FEATURES,
+        index=SAMPLES,
+    ), 
+    key="feature",
+    separate=True,
+):
+    display(chart)
+```
+
+Which, as you can see, returns us back to where we started.
+
+### Dicussion
+
+Our rotation matrix, above, allows us to map our feature space into the (presumably) much smaller (implied) factor space, whilst nonetheless retaining most of the 'information' of the original features.
+
+This helps us combat the 'curse of dimensionality' (the tendency for distance measures to explode as the number of dimensions increases), as we can train downstream models using the smaller dimensional (implied) factors, rather than the (potentially *much*) larger dimensional features.
+
+The embedding matrix itself also encodes useful information about the correlation structure of our features, which can often be interpreted directly (for instance, see the below two posts analysing single name [equity returns](../pca_equity/index.qmd) and bond / swap [yield curves](../pca_rates/index.qmd), respectively).
+
+PCA also naturally lends itself to a number of different extensions - particularly once we move from a strict eigen-decomposition, as above, onto a more general gradient based optimisation approach, such as in this post on [ppca](../ppca/index.qmd).
 
 ### Next steps
 
-Here, apply to equity returns.
+Given this, we'll next turn to some practical applications of PCA in financial markets:
 
-Here, apply to rates curves.
+- [Here](../pca_equity/index.qmd) on daily single-name equity returns.
+- [Here](../pca_rates/index.qmd) on daily per-tenor bond and swap curve yields.
