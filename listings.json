@@ -2,8 +2,9 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/pca/index.html",
-      "/posts/orthogonality/index.html"
+      "/posts/pca_equity/index.html",
+      "/posts/orthogonality/index.html",
+      "/posts/pca/index.html"
     ]
   }
 ]
