@@ -1,7 +1,7 @@
 ---
 title: "Intuition: PCA"
 author: "Tom Williams"
-date: "2023-08-08"
+date: "2023-08-07"
 categories: []
 draft: false
 execute:
@@ -436,9 +436,11 @@ The embedding matrix itself also encodes useful information about the correlatio
 
 PCA also naturally lends itself to a number of different extensions - particularly once we move from a strict eigen-decomposition, as above, onto a more general gradient based optimisation approach, such as in this post on [ppca](../ppca/index.qmd).
 
-### Next steps
+### Related posts
 
-Given this, we'll next turn to some practical applications of PCA in financial markets:
+Below are two practical examples of using PCA:
 
-- [Here](../pca_equity/index.qmd) on daily single-name equity returns.
-- [Here](../pca_rates/index.qmd) on daily per-tenor bond and swap curve yields.
+- To extract [equity market](../pca_equity/index.qmd) factors, from daily single-name equity returns.
+- To extract [yield curve](../pca_rates/index.qmd) factors, daily per-tenor bond and swap curve yields.
+
+Also, see [here](../orthogonality/index.qmd) for a primer on orthogonality (useful for understanding the decomposition above).

@@ -375,6 +375,6 @@ Roughly speaking:
 
 This 'opposite' reflection just reverses our original rotation - taking us from our point cloud on the left, back to itself on the right - and is hence our matrix inverse.
 
-### Next steps
+### Related posts
 
 Orthogonality is key to understanding [PCA](../pca/index.qmd), and is how we derive the closed form expression for multi-variate [linear regression](../linreg/index.qmd).

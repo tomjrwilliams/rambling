@@ -10,6 +10,12 @@ execute:
 
 This is the third post ...
 
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+
+```
+
 ## Setup
 
 ```{python}
