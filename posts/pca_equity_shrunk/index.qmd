@@ -324,6 +324,19 @@ pca_sector_weights_chart(xf.dates.y(2008), xf.dates.y(2008, m = 7), n=3, shrinka
 ```
 
 
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2020), xf.dates.y(2020, m = 7), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2020), xf.dates.y(2020, m = 7), n=3, shrinkage=0)
+```
+
 
 ```{python}
 #| code-fold: false

@@ -10,6 +10,8 @@ execute:
 
 In this post, we try out using PCA to extract market factors from daily equity returns.
 
+If using this in production, one would probably want to also include some kind of [covariance shrinkage](../pca_equity_shrunk/index.qmd).
+
 ## Setup
 
 ```{python}
@@ -444,3 +446,5 @@ There are, however, a number of ways that we can deal with this - for instance, 
 See [here](../pca_rates/index.qmd) for a similar post using PCA to decompose bond / swap yield curve factors.
 
 See [here](../pca/index.qmd) for a toy PCA example intended to help build up intuition for the geometry of the eigendecomposition above, and [here](../orthogonality/index.qmd) for some notes on orthogonality (on which said decomposition relies).
+
+See [here](../pca_equity_shrunk/index.qmd) for a more production-ready example, also encorporating Ledoit-Wolf covariance shrinkage.
