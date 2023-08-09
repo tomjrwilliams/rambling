@@ -1,0 +1,351 @@
+---
+title: "Covariance Shrinkage: Equity Returns"
+author: "Tom Williams"
+date: "2023-08-09"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+In this post, we ...
+
+## Setup
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/xfactors/src")
+sys.path.append("C:/hc/xtuples/src")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples as xt
+import xfactors as xf
+
+import bt.data.prices.int as prices
+import bt.algos.universe.int as universe
+import bt.algos.universe.configs as configs
+```
+
+### Data
+
+We'll start by loading some daily close to close total returns data, given a rolling universe of major european equity indices:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+df_returns = prices.returns_df(
+    xf.dates.y(2005),
+    xf.dates.y(2023, m=4),
+    indices=configs.INDICES,
+) 
+```
+
+The returns are from bloomberg, and include all cash and non-cash adjustments (in production we have a separate internal ticker for the dividend stream from a given name, but that's a little over-complicated for our purposes here).
+
+We'll also load the relevant index membership mapping tables for our universe:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+dfs_indices = universe.rolling_indices(
+    xf.dates.y(2005),
+    xf.dates.y(2023, m=4),
+    indices=configs.INDICES,
+)
+df_universe = universe.index_union(dfs_indices)
+```
+
+And some GICS sector mapping tables, as these will be useful later:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Membership"
+dfs_sectors = universe.rolling_indices(
+    xf.dates.y(2005),
+    xf.dates.y(2023, m=4),
+    sectors=configs.GICS_SECTORS,
+)
+```
+
+Vanilla PCA doesn't accomodate missing data, so given a particular target date range, we'll filter to only those tickers within our universe for the entire period, as so:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Universe"
+def in_universe(ticker, df, threshold = 1.):
+    if ticker not in df.columns:
+        return False
+    return (
+        df[ticker].sum() / len(df.index)
+    ) >= threshold
+```
+
+Which we'll then wrap into a convenience function.
+
+```{python}
+#| code-fold: true
+#| code-summary: "get_returns"
+def get_returns(d_start, d_end, threshold=1.):
+    tickers = xt.iTuple(df_returns.columns).filter(
+        in_universe,
+        df=xf.dfs.index_date_filter(df_universe, d_start, d_end),
+        threshold=threshold,
+    ).pipe(list) 
+    return xf.dfs.index_date_filter(
+        df_returns, d_start, d_end
+    )[tickers].dropna()
+```
+
+### Model
+
+```{python}
+#| code-fold: false
+#| code-summary: "Optimal Shrinkage"
+def shrinkage_optimal(vs, S, F, corr):
+
+    var = jax.numpy.diag(S)
+
+    T = vs.shape[1]
+    r = corr.mean()
+    
+    mu = vs.mean(axis=1)
+    mu_diff = vs - xf.expand_dims(mu, 1, vs.shape[1])
+
+
+    var_diff = jax.numpy.square(mu_diff) - xf.expand_dims(var, 1, vs.shape[1])
+    # features x samples
+    
+    # features days features -> days features features
+    mu_diff_exp = jax.numpy.transpose(
+        xf.expand_dims(mu_diff.T, 0, vs.shape[0]), (1, 0, 2)
+    )
+    mu_diff_exp_prod = jax.numpy.multiply(
+        mu_diff_exp, 
+        jax.numpy.transpose(mu_diff_exp, (0, 2, 1))
+    )
+
+    pi_m = jax.numpy.square(
+        mu_diff_exp_prod - xf.expand_dims(S, 0, vs.shape[1])
+    ).sum(axis = 0) / T
+    pi = pi_m.sum()
+
+    var_rs = xf.expand_dims(var, 0, vs.shape[0])
+    var_cs = xf.expand_dims(var, -1, vs.shape[0])
+
+    # row over col
+    var_r_c = jax.numpy.divide(var_rs, var_cs)
+    var_c_r = jax.numpy.divide(var_rs, var_cs)
+
+    d_ii_ij = jax.numpy.multiply(
+        jax.numpy.transpose(
+            xf.expand_dims(var_diff, 0, vs.shape[0]),
+            (2, 0, 1),
+        ),
+        mu_diff_exp_prod - xf.expand_dims(S, 0, vs.shape[1]),
+    ).sum(axis = 0) / T
+    d_jj_ij = jax.numpy.multiply(
+        jax.numpy.transpose(
+            xf.expand_dims(var_diff, 0, vs.shape[0]),
+            (2, 1, 0),
+        ),
+        mu_diff_exp_prod - xf.expand_dims(S, 0, vs.shape[1]),
+    ).sum(axis = 0) / T
+
+    p_m = (
+        + (jax.numpy.sqrt(var_r_c) * d_ii_ij)
+        + (jax.numpy.sqrt(var_c_r) * d_jj_ij)
+    ) * (r / 2)
+
+    p = p_m.sum() - jax.numpy.diag(p_m).sum() + jax.numpy.diag(pi_m).sum()
+
+    gamma = jax.numpy.square(F - S).sum()
+
+    res = ((pi - p) / gamma / T)
+    print(res)
+    return jax.numpy.clip(res, a_min = 0., a_max = 1.)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Shrunk Covariance"
+def cov_shrunk(df, shrinkage = None):
+    # Per: http://www.ledoit.net/honey.pdf
+
+    vs = df.values.T
+
+    cov = jax.numpy.cov(vs)
+    sigma = xf.expand_dims(jax.numpy.std(vs, axis=1), 0, cov.shape[0])
+
+    assert sigma.shape[0] == cov.shape[0]
+
+    corr = jax.numpy.divide(cov, jax.numpy.multiply(sigma, sigma.T))
+    var = jax.numpy.diag(cov)
+
+    var = xf.expand_dims(var, 0, corr.shape[0])
+
+    F = jax.numpy.sqrt(jax.numpy.multiply(var, var.T)) * corr.mean()
+    S = cov
+
+    if shrinkage is None:
+        shrinkage = shrinkage_optimal(vs, S, F, corr)
+
+    print("Shrinkage:", shrinkage, vs.shape)
+
+    return (shrinkage * F) + ((1 - shrinkage) * S)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "PCA"
+import functools
+@functools.lru_cache(maxsize=10)
+def fit_pca(d_start, d_end, n, shrinkage = None):
+    df = get_returns(d_start, d_end)
+    eigvals, eigvecs = jax.numpy.linalg.eig(cov_shrunk(df, shrinkage=shrinkage))
+    order = jax.numpy.flip(jax.numpy.argsort(eigvals))
+    eigvals = eigvals.real[order[:n]]
+    eigvecs = eigvecs.real[:, order[:n]]
+    return eigvals, eigvecs, df
+_ = fit_pca(xf.dates.y(2022), xf.dates.y(2023), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Apply PCA"
+def apply_pca(d_start, d_end, n, shrinkage = None):
+    eigvals, eigvecs, df = fit_pca(d_start, d_end, n, shrinkage=shrinkage)
+    return eigvals, eigvecs, df.values @ eigvecs, df
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Factors"
+def pca_weights(d_start, d_end, n, shrinkage = None):
+    _, eigvecs, _, df = apply_pca(d_start, d_end, n, shrinkage=shrinkage)
+    return pandas.DataFrame(
+        eigvecs.T,
+        columns=df.columns,
+        index=list(range(eigvecs.shape[1]))
+    )
+pca_weights(xf.dates.y(2022), xf.dates.y(2023), n=3)
+```
+
+### Aggregation
+
+```{python}
+#| code-fold: true
+#| code-summary: "Sector Tickers"
+def sector_tickers(d_start, d_end, n, shrinkage = None):
+    _, _, df = fit_pca(d_start, d_end, n, shrinkage=shrinkage)
+    tickers = xt.iTuple(df.columns)
+    return {
+        s: tickers.filter(
+            in_universe, df = dfs_sectors[s], threshold=1.
+        ) for s in sorted(dfs_sectors.keys())
+    }
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Sector Weights Chart"
+def pca_sector_weights_chart(d_start, d_end, n, shrinkage = None):
+    weights = pca_weights(d_start, d_end, n, shrinkage=shrinkage)
+    sector_map = sector_tickers(d_start, d_end, n)
+    sector_weights = pandas.DataFrame({
+        s: weights[tickers.pipe(list)].sum(axis=1)
+        for s, tickers in sector_map.items()
+    })
+    scaled_weights = pandas.DataFrame({
+        s: sector_weights[s] / len(ts)
+        for s, ts in sector_map.items()
+    })
+    return xf.graphs.df_facet_bar_chart(
+        xf.dfs.melt_with_index(scaled_weights, index_as="factor"),
+        x="variable",
+        y="value",
+        facet="factor",
+    )
+pca_sector_weights_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+```
+
+### Results
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2007), xf.dates.y(2008), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2007), xf.dates.y(2008), n=3, shrinkage=0)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2008), xf.dates.y(2008, m = 7), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2008), xf.dates.y(2008, m = 7), n=3, shrinkage=0)
+```
+
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2020 - 2021"
+pca_sector_weights_chart(xf.dates.y(2020), xf.dates.y(2021), n=3)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2020 - 2022"
+pca_sector_weights_chart(xf.dates.y(2020), xf.dates.y(2022), n=3)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2007), xf.dates.y(2010), n=3)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Weights: 2007 - 2010"
+pca_sector_weights_chart(xf.dates.y(2007), xf.dates.y(2010, m = 2), n=3)
+```
