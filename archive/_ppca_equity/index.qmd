@@ -60,8 +60,8 @@ import hc_core.graphs as graphs
 import hc_core.dates as dates
 import hc_core.caching as caching
 
-import bt.data.prices.int
-import bt.algos.universe.int
+import hcbt.data.prices.int
+import hcbt.algos.universe.int
 
 graphs.set_rendering("NA")
 ```

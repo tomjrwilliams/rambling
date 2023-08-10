@@ -47,9 +47,9 @@ import jax.numpy
 import xtuples as xt
 import xfactors as xf
 
-import bt.data.prices.int as prices
-import bt.algos.universe.int as universe
-import bt.algos.universe.configs as configs
+import hcbt.data.prices.int as prices
+import hcbt.algos.universe.int as universe
+import hcbt.algos.universe.configs as configs
 ```
 
 ### Data
