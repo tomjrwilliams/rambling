@@ -1,8 +1,0 @@
-
-
-instrument on one hot on both tenor index
-and rating
-
-
-so need an option to assert independence between various features?
-and / or a map from factors to feature domains
