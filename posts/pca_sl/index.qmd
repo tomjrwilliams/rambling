@@ -57,10 +57,10 @@ import hcbt.algos.universe.configs as configs
 #| code-fold: false
 #| code-summary: "Returns"
 df_returns = prices.returns_df(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
-) 
+)
 ```
 
 The returns are from bloomberg, and include all cash and non-cash adjustments (in production we have a separate internal ticker for the dividend stream from a given name, but that's a little over-complicated for our purposes here).
@@ -71,8 +71,8 @@ We'll also load the relevant index membership mapping tables for our universe:
 #| code-fold: false
 #| code-summary: "Index Membership"
 dfs_indices = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 )
 df_universe = universe.index_union(dfs_indices)
@@ -82,44 +82,187 @@ df_universe = universe.index_union(dfs_indices)
 #| code-fold: false
 #| code-summary: "Sector Membership"
 dfs_sectors = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     sectors=configs.GICS_SECTORS,
 )
 ```
 
-Vanilla PCA doesn't accomodate missing data, so given a particular target date range, we'll filter to only those tickers within our universe for the entire period, as so:
-
-```{python}
-#| code-fold: false
-#| code-summary: "Universe"
-def in_universe(ticker, df, threshold = 1.):
-    if ticker not in df.columns:
-        return False
-    return (
-        df[ticker].sum() / len(df.index)
-    ) >= threshold
-```
-
-Which we'll then wrap into a convenience function.
-
-```{python}
-#| code-fold: true
-#| code-summary: "get_returns"
-def get_returns(d_start, d_end, threshold=1.):
-    tickers = xt.iTuple(df_returns.columns).filter(
-        in_universe,
-        df=xf.dfs.index_date_filter(df_universe, d_start, d_end),
-        threshold=threshold,
-    ).pipe(list) 
-    return xf.dfs.index_date_filter(
-        df_returns, d_start, d_end
-    )[tickers].dropna()
-```
 
 ### Model
 
+we use flags to specify not to re-fit the latent weights / means
 
+```{python}
+#| code-fold: false
+#| code-summary: "Model"
+N_STAGES = 5
+model, STAGES = xf.Model().init_stages(N_STAGES)
+INPUTS, SLICING, PARAMS, ENCODE, DECODE, STRUCTURE = STAGES
+
+def define_model(n_factors, n_noise):
+    model, stages = xf.Model().init_stages(N_STAGES)
+    assert stages.len() == STAGES.len()
+
+    n = n_factors
+
+    model = (
+        model.add_input(xf.nodes.inputs.dfs.Input_DataFrame_Wide_Rolling(
+            step=1,
+            window=3,
+            unit="M",
+            allow_missing_columns=False,
+            allow_missing_indices=True,
+            allow_new_columns=False,
+            allow_new_indices=True,
+            na_threshold_columns=0.,
+            na_threshold_indices=0.,
+        ))
+        .add_input(xf.nodes.inputs.dfs.Input_DataFrame_Wide(
+            allow_missing_columns=True,
+            allow_missing_indices=False,
+            allow_new_columns=True,
+            allow_new_indices=False,
+            na_threshold_columns=0.,
+            na_threshold_indices=0.,
+        ))
+        .add_node(SLICING, xf.nodes.inputs.dfs.Slice_DataFrame_Wide_Rolling_Columns(
+            rolling=xf.Loc.result(INPUTS, 0),
+            slicing=xf.Loc.result(INPUTS, 1),
+            T=True,
+            scale=xf.utils.scaling.Unit_Sum(axis=1)
+        ))
+        .add_node(PARAMS, xf.nodes.params.weights.VGaussian(
+            n=n_factors,
+            data=xf.Loc.result(INPUTS, 0),
+        ))
+        .add_node(PARAMS, xf.nodes.params.random.Gaussian(
+            shape=(n_factors + n_noise, configs.GICS_SECTORS.len()),
+        ))
+        .add_node(ENCODE, xf.nodes.pca.rolling.PCA_Rolling_Encoder(
+            n=n,
+            weights=xf.Loc.param(PARAMS, 0),
+            data=xf.Loc.result(INPUTS, 0),
+        ))
+        .add_node(DECODE, xf.nodes.pca.rolling.PCA_Rolling_Decoder(
+            # n=n,
+            weights=xf.Loc.param(PARAMS, 0),
+            factors=xf.Loc.result(ENCODE, 0),
+        ))
+        .add_node(STRUCTURE, xf.nodes.pca.structured.rolling.PCA_Rolling_LatentWeightedMean_MSE(
+            weights_pca=xf.Loc.param(PARAMS, 0),
+            weights_structure=xf.Loc.result(SLICING, 0),
+            latents=xf.Loc.param(PARAMS, 1),
+            share_factors=True,
+            share_latents=True,
+        ))
+        .add_constraint(xf.nodes.constraints.loss.Constraint_Minimise(
+            data=xf.Loc.result(STRUCTURE, 0),
+        ))
+        .add_constraint(xf.nodes.constraints.linalg.Constraint_VOrthonormal(
+            data=xf.Loc.param(PARAMS, 0),
+        ))
+        .add_constraint(xf.nodes.constraints.loss.Constraint_VMSE(
+            l=xf.Loc.result(INPUTS, 0),
+            r=xf.Loc.result(DECODE, 0),
+        ))
+    )
+
+    # todo, try adding a further shape constraint that pc0 is positive
+
+    return model
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+def fit_model(d_start, d_end, n_factors, n_noise):
+    # weights_structure
+    # latent_features * features
+    # not one hot: include the inverse proportion weights
+
+    df_sector_mapping = pandas.DataFrame(
+        [
+            [
+                0 if ticker not in df_sector.columns
+                else (1. if df_sector[ticker].any() else 0.)
+                for ticker in df_returns.columns
+            ]
+            for sector, df_sector in dfs_sectors.items()
+        ],
+        columns=df_returns.columns,
+        index=list(dfs_sectors.keys()),
+    )
+
+    if n_noise > 0:
+        # if given, noise has equal weights on all columns
+        # but with a fixed zero on the altents
+        # so means a concatenation node on the param and a zero array
+
+        # do that by an entirely separate set of latents
+
+        pass
+
+    data = (
+        (lambda _df: _df.assign(
+            index=xf.utils.dates.date_index(_df.index.values)
+        ).set_index("index"))(df_returns.loc[
+            (df_returns.index >= d_start) & (df_returns.index <= d_end)
+        ]),
+        df_sector_mapping,
+    )
+
+    model = define_model(n_factors, n_noise).init(data).optimise(data)
+    results = model.apply(data)
+
+    params = model.params
+    weights = params[PARAMS][0]
+    latents = params[PARAMS][1]
+
+    return model, weights, latents
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+def latent_bar_chart(d_start, d_end, n_factors, n_noise):
+    model, weights, latents = fit_model(d_start, d_end, n_factors, n_noise)
+    df = pandas.DataFrame(
+        latents,
+        columns=configs.GICS_SECTORS,
+        index=list(range(n_factors))
+    )
+    return xf.graphs.df_facet_bar_chart(
+        xf.dfs.melt_with_index(weights, index_as="factor"),
+        x="variable",
+        y="value",
+        facet="factor",
+    )
+latent_bar_chart(
+    xf.utils.dates.y(2020), xf.utils.dates.y(2022), 5, 0
+)
+```
+
+so that we can still re fit new periods using optimise
+by flagging out the latents
+
+
+how to keep previous factor weights per period, in such a way that we can re-apply to new periods?
+we don't - the periods are locked into the model setup?
+what we keep are the latent means?
+
+
+a periodised model without shared params, which we can be used to reoptimise
+is essentially independent by period - so there's no use to extensibility
+
+-> periodise by adding separate inputs for each period?
+or, by adding a periodised dataframe input (this)
+that returns a tuple of appropriately periodised ndarray
+
+
+similarly if we fit latent tenor embeddings in a kernel function approach
+where the parameters on the kernel function vary by period, but the embedding itself doesnt
 
 ### Results
 
