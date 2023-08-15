@@ -1,0 +1,36 @@
+
+    # df_weights = pandas.concat([ 
+    #     xf.utils.dfs.melt_with_index(
+    #         pandas.DataFrame(
+    #             w_agg,
+    #             columns=configs.GICS_SECTORS,
+    #             index=FACTORS,
+    #         ), 
+    #         index_as="factor"
+    #     ).assign(
+    #         period=[
+    #             "p({})".format(i)
+    #             for _ in range(n_factors) for _ in configs.GICS_SECTORS
+    #         ]
+    #     )
+    #     for i, w_agg in weights_agg.enumerate()
+    # ])
+
+    
+    return xf.visuals.graphs.df_facet_bar_chart(
+    # return xf.visuals.graphs.df_facet_scatter_chart(
+        # pandas.concat([
+        #     df.assign(
+        #         name=["latents" for _ in df.index],
+        #         period=["all" for _ in df.index],
+        #     ),
+        #     df_weights.assign(name=["weights" for _ in df_weights.index])
+        # ]),
+        df.assign(error=error_bars).sort_values(by=["factor"]),
+        x="variable",
+        y="value",
+        facet_row="factor",
+        error_y="error",
+        # facet_col="name",
+        # color="period",
+    )

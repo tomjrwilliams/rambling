@@ -1,0 +1,148 @@
+---
+title: "Backtest: Momentum (Naive)"
+author: "Tom Williams"
+date: "2023-08-08"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+In this post, ...
+
+## Setup
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/xfactors/src")
+sys.path.append("C:/hc/xtuples/src")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples as xt
+import xfactors as xf
+
+import hcbt.data.prices.int as prices
+import hcbt.algos.universe.int as universe
+import hcbt.algos.universe.configs as configs
+```
+
+### Data
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+df_returns = prices.returns_df(
+    xf.dates.y(2005),
+    xf.dates.y(2023, m=4),
+    indices=configs.INDICES,
+) 
+```
+
+The returns are from bloomberg, and include all cash and non-cash adjustments (in production we have a separate internal ticker for the dividend stream from a given name, but that's a little over-complicated for our purposes here).
+
+We'll also load the relevant index membership mapping tables for our universe:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+dfs_indices = universe.rolling_indices(
+    xf.dates.y(2005),
+    xf.dates.y(2023, m=4),
+    indices=configs.INDICES,
+)
+df_universe = universe.index_union(dfs_indices)
+```
+
+
+Previously, we did pca
+
+Can now get rolling pca:
+
+
+
+Given, we can construct a trend signal - say, for our market pc1 (versus the previous long only)
+
+
+And then backtest it (rolling weights forward each month, given lookback):
+
+
+
+pass in the dfs_indices for the dfs_universes
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+acc, strat = xf.xbt.strategies.build(
+    dict(
+
+    ),
+    dfs_indices,
+    name="European Single Name: Equal Weighted",
+    rolling_universe=True,
+    equal=True,
+)
+res = xf.xbt.strategies.run(
+    strat,
+    df_returns,
+    acc,
+)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot()
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.stats
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot_histogram()
+```
+
+Colourful chart is effectively our rolling index membership:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot_security_weights()
+```
+
+
+
+
+
+other to do:
+
+single name trend / rev, hedge market factor (by beta of portfolio, or net?)

@@ -78,6 +78,20 @@ dfs_indices = universe.rolling_indices(
 df_universe = universe.index_union(dfs_indices)
 ```
 
+
+Previously, we did pca
+
+Can now get rolling pca:
+
+
+
+Given, we can construct a trend signal - say, for our market pc1 (versus the previous long only)
+
+
+And then backtest it (rolling weights forward each month, given lookback):
+
+
+
 pass in the dfs_indices for the dfs_universes
 
 ```{python}
@@ -125,101 +139,10 @@ Colourful chart is effectively our rolling index membership:
 res.plot_security_weights()
 ```
 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.xbt.strategies.build(
-    dict(
-
-    ),
-    dfs_indices,
-    name="European Single Name: Inverse Volatility",
-    rolling_universe=True,
-    inv_vol=True,
-)
-res = xf.xbt.strategies.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
 
 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.xbt.strategies.build(
-    dict(
-
-    ),
-    dfs_indices,
-    name="European Single Names: ERC",
-    rolling_universe="M",
-    rolling_lookback="3M",
-    after_days=120,
-    erc=True,
-)
-res = xf.xbt.strategies.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
 
 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.xbt.strategies.build(
-    dict(
+other to do:
 
-    ),
-    dfs_indices,
-    name="European Single Name: Mean Variance",
-    rolling_universe="M",
-    rolling_lookback="3M",
-    after_days=120,
-    mean_var=True,
-)
-res = xf.xbt.strategies.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
+single name trend / rev, hedge market factor (by beta of portfolio, or net?)
