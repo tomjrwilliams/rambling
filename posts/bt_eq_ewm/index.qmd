@@ -1112,3 +1112,6 @@ res.plot()
 #| code-summary: "Index Membership"
 res.stats
 ```
+
+
+note: 30d benefits from the overextension
