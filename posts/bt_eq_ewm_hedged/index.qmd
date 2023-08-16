@@ -57,8 +57,8 @@ import hcbt.algos.universe.configs as configs
 #| code-fold: false
 #| code-summary: "Returns"
 df_returns = prices.returns_df(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 ) 
 ```
@@ -71,8 +71,8 @@ We'll also load the relevant index membership mapping tables for our universe:
 #| code-fold: false
 #| code-summary: "Index Membership"
 dfs_indices = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 )
 df_universe = universe.index_union(dfs_indices)
@@ -87,15 +87,6 @@ this time, calcualte a simple signal, weighting proportional to
 rolling ewm returns
 
 
-reversed
-
-so will get presumably reverse of momentum fo rlinear weighting
-but any nonlinearity will eman no
-
-
-even clamping of top / bottom x
-
-
 
 different lookbacks (per chart presumably)
 
@@ -103,7 +94,7 @@ different lookbacks (per chart presumably)
 ```{python}
 #| code-fold: false
 #| code-summary: "Index Membership"
-acc, strat = xf.xbt.strategies.build(
+acc, strat = xf.bt.backtests.build(
     dict(
 
     ),
@@ -112,7 +103,7 @@ acc, strat = xf.xbt.strategies.build(
     rolling_universe=True,
     equal=True,
 )
-res = xf.xbt.strategies.run(
+res = xf.bt.backtests.run(
     strat,
     df_returns,
     acc,
@@ -121,6 +112,11 @@ res = xf.xbt.strategies.run(
 
 
 now z score
+
+
+
+
+now top bottom x
 
 
 

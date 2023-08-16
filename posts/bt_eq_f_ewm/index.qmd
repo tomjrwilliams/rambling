@@ -53,12 +53,14 @@ import hcbt.algos.universe.configs as configs
 ### Data
 
 
+f ewm is ewm on the factor returns
+
 ```{python}
 #| code-fold: false
 #| code-summary: "Returns"
 df_returns = prices.returns_df(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 ) 
 ```
@@ -71,39 +73,33 @@ We'll also load the relevant index membership mapping tables for our universe:
 #| code-fold: false
 #| code-summary: "Index Membership"
 dfs_indices = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 )
 df_universe = universe.index_union(dfs_indices)
 ```
 
+
+Previously, we did pca
+
+Can now get rolling pca:
+
+
+
+Given, we can construct a trend signal - say, for our market pc1 (versus the previous long only)
+
+
+And then backtest it (rolling weights forward each month, given lookback):
+
+
+
 pass in the dfs_indices for the dfs_universes
-
-
-
-this time, calcualte a simple signal, weighting proportional to 
-
-rolling ewm returns
-
-
-reversed
-
-so will get presumably reverse of momentum fo rlinear weighting
-but any nonlinearity will eman no
-
-
-even clamping of top / bottom x
-
-
-
-different lookbacks (per chart presumably)
-
 
 ```{python}
 #| code-fold: false
 #| code-summary: "Index Membership"
-acc, strat = xf.xbt.strategies.build(
+acc, strat = xf.bt.backtests.build(
     dict(
 
     ),
@@ -112,22 +108,43 @@ acc, strat = xf.xbt.strategies.build(
     rolling_universe=True,
     equal=True,
 )
-res = xf.xbt.strategies.run(
+res = xf.bt.backtests.run(
     strat,
     df_returns,
     acc,
 )
 ```
 
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot()
+```
 
-now z score
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.stats
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot_histogram()
+```
+
+Colourful chart is effectively our rolling index membership:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+res.plot_security_weights()
+```
 
 
 
 
-now some kind of non linear weighting
 
+other to do:
 
-
-
-now over extension
+single name trend / rev, hedge market factor (by beta of portfolio, or net?)

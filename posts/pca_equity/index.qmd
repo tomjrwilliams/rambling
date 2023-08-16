@@ -60,8 +60,8 @@ We'll start by loading some daily close to close total returns data, given a rol
 #| code-fold: false
 #| code-summary: "Returns"
 df_returns = prices.returns_df(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 ) 
 ```
@@ -74,8 +74,8 @@ We'll also load the relevant index membership mapping tables for our universe:
 #| code-fold: false
 #| code-summary: "Index Membership"
 dfs_indices = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
 )
 df_universe = universe.index_union(dfs_indices)
@@ -87,8 +87,8 @@ And some GICS sector mapping tables, as these will be useful later:
 #| code-fold: false
 #| code-summary: "Sector Membership"
 dfs_sectors = universe.rolling_indices(
-    xf.dates.y(2005),
-    xf.dates.y(2023, m=4),
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
     sectors=configs.GICS_SECTORS,
 )
 ```
@@ -140,7 +140,7 @@ def fit_pca(d_start, d_end, n):
     eigvals = eigvals.real[order[:n]]
     eigvecs = eigvecs.real[:, order[:n]]
     return eigvals, eigvecs, df
-_ = fit_pca(xf.dates.y(2022), xf.dates.y(2023), n=3)
+_ = fit_pca(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 The embedding matrix can then be used to project the data into a lower dimensional factor space, where the relative 'importance' of each factor is given by the relevant term in the diagonal scaling matrix (importance being defined as how much of the original data variance each factor 'explains').
@@ -170,7 +170,7 @@ def pca_factor_corr(d_start, d_end, n):
         v_min=-1.,
         v_max=.1,
     )
-pca_factor_corr(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_factor_corr(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 And are each univariate gaussian, with descending variance from PC0 down to PC2 (seen in the increasing concentration of the gaussians in the plot below):
@@ -192,7 +192,7 @@ def pca_factor_density_chart(d_start, d_end, n):
         "factor",
         "value",
     )
-pca_factor_density_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_factor_density_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 Turning to our factor weights:
@@ -207,7 +207,7 @@ def pca_weights(d_start, d_end, n):
         columns=df.columns,
         index=list(range(eigvecs.shape[1]))
     )
-pca_weights(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_weights(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 One way to visualise them is with a simple bar chart:
@@ -224,7 +224,7 @@ def pca_factor_weight_chart(d_start, d_end, n):
         y="value",
         facet="factor",
     )
-pca_factor_weight_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_factor_weight_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 However, as one can see, given that we end up with a single weight per ticker per factor, it's fairly difficult to know how to interpret each of the above.
@@ -264,7 +264,7 @@ def sector_map_chart(d_start, d_end, n):
         x="variable",
         y="value",
     )
-sector_map_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+sector_map_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 So, we'll scale our average relative to the sector representation during the period in question, returning something like the below:
@@ -289,7 +289,7 @@ def pca_sector_weights_chart(d_start, d_end, n):
         y="value",
         facet="factor",
     )
-pca_sector_weights_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_sector_weights_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 As one can see, this is much more easily interpretible.
@@ -323,7 +323,7 @@ def index_map_chart(d_start, d_end, n):
         x="variable",
         y="value",
     )
-index_map_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+index_map_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 Which we'll account for in our averaging just as we did for our sectors, giving us back something like the below:
@@ -348,7 +348,7 @@ def pca_index_weights_chart(d_start, d_end, n):
         y="value",
         facet="factor",
     )
-pca_index_weights_chart(xf.dates.y(2022), xf.dates.y(2023), n=3)
+pca_index_weights_chart(xf.utils.dates.y(2022), xf.utils.dates.y(2023), n=3)
 ```
 
 With which, we can get back to the fun part - interpretation!
@@ -360,7 +360,7 @@ Let's try plotting our factor sector weights for the period 2020 - 2022:
 ```{python}
 #| code-fold: false
 #| code-summary: "Sector Weights: 2020 - 2022"
-pca_sector_weights_chart(xf.dates.y(2020), xf.dates.y(2022), n=3)
+pca_sector_weights_chart(xf.utils.dates.y(2020), xf.utils.dates.y(2022), n=3)
 ```
 
 As one can see, the first factor has the same sign for every sector, and if we dig into particular components, seems to roughly match our intuitive notion of index beta (ie. higher beta sectors having larger weights):
@@ -382,7 +382,7 @@ If we run the same procedure over 2007 to 2010:
 ```{python}
 #| code-fold: false
 #| code-summary: "Sector Weights: 2007 - 2010"
-pca_sector_weights_chart(xf.dates.y(2007), xf.dates.y(2010), n=3)
+pca_sector_weights_chart(xf.utils.dates.y(2007), xf.utils.dates.y(2010), n=3)
 ```
 
 Our second factor is almost entirely dominated by Financials and Real Estate (40 and 60) versus everything else, and our third by Energy and Materials (10 and 15) versus everything else.
@@ -394,7 +394,7 @@ Let's now compare to the period 2014 to 2016:
 ```{python}
 #| code-fold: false
 #| code-summary: "Sector Weights: 2014 - 2016"
-pca_sector_weights_chart(xf.dates.y(2014), xf.dates.y(2016), n=3)
+pca_sector_weights_chart(xf.utils.dates.y(2014), xf.utils.dates.y(2016), n=3)
 ```
  
 Here, the Energy and Materials (10 and 15) vs everything else is much more prominent, given the global commodity wobble (at least partly driven by the rise in US shale oil production). 
@@ -414,7 +414,7 @@ For instance, we can see the same commodity wobble in the Norwegian (OBX) and to
 ```{python}
 #| code-fold: false
 #| code-summary: "Index Weights: 2014 - 2016"
-pca_index_weights_chart(xf.dates.y(2014), xf.dates.y(2016), n=3)
+pca_index_weights_chart(xf.utils.dates.y(2014), xf.utils.dates.y(2016), n=3)
 ```
 
 Whereas we can see something like a peripherals (Spain & Portugal) vs European core factor, if we run over the peak of the EU sovereign debt crisis (2010-2013):
@@ -422,7 +422,7 @@ Whereas we can see something like a peripherals (Spain & Portugal) vs European c
 ```{python}
 #| code-fold: false
 #| code-summary: "Index Weights: 2010 - 2013"
-pca_index_weights_chart(xf.dates.y(2010), xf.dates.y(2013), n=3)
+pca_index_weights_chart(xf.utils.dates.y(2010), xf.utils.dates.y(2013), n=3)
 ```
 
 Where we can see how the EU financials index (SX7E) is moving with the IBEX and PSI (lending support to the idea that this is some kind of financial stress factor).
