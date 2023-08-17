@@ -70,7 +70,7 @@ We'll also load the relevant index membership mapping tables for our universe:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 dfs_indices = universe.rolling_indices(
     xf.utils.dates.y(2005),
     xf.utils.dates.y(2023, m=4),
@@ -83,1035 +83,318 @@ reference: equal long only rolling universe
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 acc, strat = xf.bt.backtests.build(
     dict(
 
     ),
-    dfs_indices,
+    df_universe,
     name="European Single Name: Equal Weighted",
     rolling_universe=True,
     equal=True,
 )
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+res = xf.bt.backtests.run(acc, df_returns, strat)
 ```
-
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
-
-
-
-
 
 trend:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=False,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=False)),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(combine=True),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
 now z score
 
-
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(combine=True),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
-
+Weekly
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 60,
-    z=False,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=False)),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        frequency=bt.algos.RunWeekly(),
+        ls_kwargs=dict(combine=True),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
-
+Overextension:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 60,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple(
+            xf.bt.signals.df_ewm,
+            xf.utils.funcs.overextension_df,
+        ),
+        kws=xt.iTuple(
+            dict(alpha=2 / (span + 1), z=2 / 30),
+            dict(),
+        ),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(combine=True),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
-
-
-
+Long only:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 180,
-    z=False,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(short=None),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
-
+Long only weekly:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 180,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(short=None),
+        frequency=bt.algos.RunWeekly(),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
 
+Short only:
+
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(long=None),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
 
 
+Short only:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(long=None),
+        frequency=bt.algos.RunWeekly(),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.plot()
 ```
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 res.stats
 ```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 15,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 15,
-    z=True,
-    equal=True,
-    top_n=30,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-import bt
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 180,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 180,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunMonthly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunMonthly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-now some kind of non linear weighting
-
-
-
-
-now over extension
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=True,
-    equal=True,
-    top_n=30,
-    f_signal=xf.utils.funcs.overextension,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=True,
-    equal=True,
-    top_n=30,
-    f_signal=xf.utils.funcs.overextension,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=2 / 30,
-    equal=True,
-    top_n=30,   
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    f_signal=xf.utils.funcs.overextension,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=xf.bt.frequencies.RunRandomly(0.2)
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=xf.bt.frequencies.RunRandomly(0.5)
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=False,
-    equal=True,
-    top_n=30,
-    frequency=xf.bt.frequencies.RunRandomly(0.05)
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 90,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly()
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly(),
-    kwargs=dict(short=None)
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 360,
-    z=2 / 30,
-    equal=True,
-    top_n=30,
-    frequency=bt.algos.RunWeekly(),
-    kwargs=dict(long=None)
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=True,
-    equal=True,
-    top_n=30,
-    flip=True,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=True,
-    equal=True,
-    top_n=30,
-    kwargs=dict(short=None),
-    flip=True,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.strategies.ls_equity_signal(
-    df_returns,
-    dfs_indices,
-    universe_name="EU Single Name",
-    alpha=2 / 30,
-    z=True,
-    equal=True,
-    top_n=30,
-    kwargs=dict(long=None),
-    flip=True,
-)
-res = xf.bt.backtests.run(
-    strat,
-    df_returns,
-    acc,
-)
-```
-
- 
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.plot()
-```
-
-```{python}
-#| code-fold: false
-#| code-summary: "Index Membership"
-res.stats
-```
-
-
-note: 30d benefits from the overextension
