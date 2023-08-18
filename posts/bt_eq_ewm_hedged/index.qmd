@@ -48,6 +48,7 @@ import xfactors as xf
 import hcbt.data.prices.int as prices
 import hcbt.algos.universe.int as universe
 import hcbt.algos.universe.configs as configs
+import bt
 ```
 
 ### Data
@@ -59,9 +60,9 @@ import hcbt.algos.universe.configs as configs
 df_returns = prices.returns_df(
     xf.utils.dates.y(2005),
     xf.utils.dates.y(2023, m=4),
-    indices=configs.INDICES,
+    indices=configs.INDICES_MAJOR,
 ) 
-```
+``` 
 
 The returns are from bloomberg, and include all cash and non-cash adjustments (in production we have a separate internal ticker for the dividend stream from a given name, but that's a little over-complicated for our purposes here).
 
@@ -69,61 +70,207 @@ We'll also load the relevant index membership mapping tables for our universe:
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
+#| code-summary: ""
 dfs_indices = universe.rolling_indices(
     xf.utils.dates.y(2005),
     xf.utils.dates.y(2023, m=4),
-    indices=configs.INDICES,
+    indices=configs.INDICES_MAJOR,
 )
 df_universe = universe.index_union(dfs_indices)
 ```
 
-pass in the dfs_indices for the dfs_universes
+reference: equal long only rolling universe
 
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def build_equal(acc):
+    acc, equal_weight = xf.bt.backtests.build(
+        dict(),
+        df_universe,
+        name="EU Single Name: Equal",
+        rolling_universe=True,
+        equal=True,
+    )
+    return acc, equal_weight
+acc, equal_weight = build_equal({})
+res = xf.bt.backtests.run(acc, df_returns, equal_weight)
+```
 
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
 
-this time, calcualte a simple signal, weighting proportional to 
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
 
-rolling ewm returns
-
-
-
-different lookbacks (per chart presumably)
 
 
 ```{python}
 #| code-fold: false
-#| code-summary: "Index Membership"
-acc, strat = xf.bt.backtests.build(
-    dict(
+#| code-summary: ""
+acc = {}
+acc, equal_weight = build_equal(acc)
+strats = []
+for span in [30]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=False)),
+        flip=True,
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(combine=True, short=equal_weight, weights=numpy.array([
+            1., -1.
+        ]) / 2),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
+```
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
 
-    ),
-    dfs_indices,
-    name="European Single Name: Equal Weighted",
-    rolling_universe=True,
-    equal=True,
-)
-res = xf.bt.backtests.run(
-    strat,
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
+
+PCA:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def f_pca(i, n = 3):
+    def f(nd):
+        eigvals, weights = numpy.linalg.eig(numpy.cov(
+            numpy.transpose(nd)
+        ))
+        order = numpy.flip(numpy.argsort(eigvals))[:n]
+        eigvals = eigvals[order].real
+        weights = weights[..., order].real
+        assert weights.shape[1], [nd.shape, weights.shape]
+        w = weights.T[i]
+        w_pos = w > 0
+        if w_pos.sum() < len(w) / 2:
+            w *= -1
+        w = w / sum(w)
+        return w
+    return f
+```
+
+PCA rolling weights:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+def factor_df(
+    f,
     df_returns,
-    acc,
-)
+    df_universe,
+    lookback,
+):
+    df_returns = df_returns[df_universe.columns]
+    df_universe = xf.bt.backtests.resample_universe(
+        df_universe, lookback
+    )
+    return xf.utils.dfs.rolling_apply(
+        f,
+        df_returns,
+        lookback,
+        df_mask=df_universe,
+        na_threshold_row=0.,
+        na_threshold_col=0.,
+    )
 ```
 
 
-now z score
+trend (hedged):
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+strats = []
+def build_factor(acc):
+    acc, factor = xf.bt.strategies.ls_equity_weights(
+        acc,
+        df_universe,
+        dict(factor=factor_df(
+            f_pca(0),
+            df_returns,
+            df_universe,
+            lookback="6M",
+        )),
+        dict(factor=dict(given=True)),
+        universe_name="EU Single Name",
+        shift="2D",
+        weights_name="factor",
+        frequency=bt.algos.RunDaily(),
+    )
+    return acc, factor
+acc, factor = build_factor({})
+res = xf.bt.backtests.run(acc, df_returns, factor)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
 
 
 
 
-now top bottom x
+```{python}
+#| code-fold: false
+#| code-summary: ""
+acc = {}
+strats = []
+acc, factor = build_factor(acc)
+for span in [30]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=False)),
+        flip=True,
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30),
+        ls_kwargs=dict(combine=True, short=factor, weights=numpy.array([
+            1., -1.
+        ]) / 2),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
+```
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
 
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
 
-
-
-now some kind of non linear weighting
-
-
-
-
-now over extension

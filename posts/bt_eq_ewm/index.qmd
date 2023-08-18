@@ -268,7 +268,7 @@ for span in [5, 15, 30, 90, 180, 360, 720]:
         df_returns,
         df_universe,
         fs=xt.iTuple.one(xf.bt.signals.df_ewm),
-        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
         universe_name="EU Single Name",
         signal_name="span({})".format(span),
         strat_kwargs = dict(equal=True, top_n=30),
@@ -303,7 +303,7 @@ for span in [5, 15, 30, 90, 180, 360, 720]:
         df_returns,
         df_universe,
         fs=xt.iTuple.one(xf.bt.signals.df_ewm),
-        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
         universe_name="EU Single Name",
         signal_name="span({})".format(span),
         strat_kwargs = dict(equal=True, top_n=30),
@@ -340,7 +340,7 @@ for span in [5, 15, 30, 90, 180, 360, 720]:
         df_returns,
         df_universe,
         fs=xt.iTuple.one(xf.bt.signals.df_ewm),
-        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
         universe_name="EU Single Name",
         signal_name="span({})".format(span),
         strat_kwargs = dict(equal=True, top_n=30),
@@ -376,11 +376,82 @@ for span in [5, 15, 30, 90, 180, 360, 720]:
         df_returns,
         df_universe,
         fs=xt.iTuple.one(xf.bt.signals.df_ewm),
-        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
         universe_name="EU Single Name",
         signal_name="span({})".format(span),
         strat_kwargs = dict(equal=True, top_n=30),
         ls_kwargs=dict(long=None),
+        frequency=bt.algos.RunWeekly(),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
+
+Long only, both:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30, gross_long=1., gross_short=1.),
+        ls_kwargs=dict(combine=True),
+    )
+    strats.append(strat)
+res = xf.bt.backtests.run(acc, df_returns, *strats)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.plot()
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+res.stats
+```
+
+Long only, both:
+
+```{python}
+#| code-fold: false
+#| code-summary: ""
+acc = {}
+strats = []
+for span in [5, 15, 30, 90, 180, 360, 720]:
+    acc, strat = xf.bt.strategies.ls_equity_signal(
+        acc,
+        df_returns,
+        df_universe,
+        fs=xt.iTuple.one(xf.bt.signals.df_ewm),
+        kws=xt.iTuple.one(dict(alpha=2 / (span + 1), z=2 / 31)),
+        universe_name="EU Single Name",
+        signal_name="span({})".format(span),
+        strat_kwargs = dict(equal=True, top_n=30, gross_long=1., gross_short=1.),
+        ls_kwargs=dict(combine=True),
         frequency=bt.algos.RunWeekly(),
     )
     strats.append(strat)

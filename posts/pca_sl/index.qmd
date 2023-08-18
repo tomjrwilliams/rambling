@@ -62,11 +62,12 @@ def vol_scale(df, alpha = 2 / 90):
 ```{python}
 #| code-fold: false
 #| code-summary: "Returns"
-df_returns = vol_scale(prices.returns_df(
+df_returns = prices.returns_df(
     xf.utils.dates.y(2005),
     xf.utils.dates.y(2023, m=4),
     indices=configs.INDICES,
-))
+)
+# df_returns = vol_scale(vol_scale)
 ```
 
 ```{python}
@@ -187,6 +188,7 @@ def define_model(n_factors, n_noise):
             data=xf.Loc.param(PARAMS, 0),
             T=True,
         ), not_if=dict(score=True))
+        # .add_constrain 
         .add_constraint(xf.nodes.constraints.loss.Constraint_VMSE(
             l=xf.Loc.result(INPUTS, 0),
             r=xf.Loc.result(DECODE, 0),
@@ -307,6 +309,14 @@ the error bars are enormous though
 perhaps where a general error factor comes in
 weights all equal, latents as zeros
 single noise term conatenated into factor weights
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2010), xf.utils.dates.y(2022), 5, 0
+)
+```
 
 ```{python}
 #| code-fold: false
