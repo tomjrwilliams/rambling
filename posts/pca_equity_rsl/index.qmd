@@ -147,7 +147,7 @@ def define_model(n_factors, n_noise):
         .add_node(SETUP, xf.nodes.cov.vanilla.VCov(
             data=xf.Loc.result(INPUTS, 0),
         ), static = True)
-        .add_node(PARAMS, xf.nodes.params.weights.VOrthogonal(
+        .add_node(PARAMS, xf.nodes.params.weights.Orthogonal(
             n=n_factors,
             data=xf.Loc.result(INPUTS, 0),
         ))
