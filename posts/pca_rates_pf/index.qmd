@@ -56,11 +56,12 @@ dfs_curves = xf.bt.data.curve_dfs(
         "YCGT0025",
         "YCSW0045",
         "YCGT0016",
-    ]).extend(
-        xf.bt.data.curves.CORP_USD
-    ).extend(
-        xf.bt.data.curves.CORP_EUR
-    ),
+    ]),
+    # .extend(
+    #     xf.bt.data.curves.CORP_USD
+    # ).extend(
+    #     xf.bt.data.curves.CORP_EUR
+    # ),
     dp="../xfactors/__local__/csvs"
 )
 dfs_curves = {
@@ -106,17 +107,126 @@ def tenor_chart(d_start, d_end, tenor, curves):
     )
 ```
 
+```{python}
+#| code-fold: true
+#| code-summary: "Sector Weights Chart"
+import functools
+# @functools.lru_cache(maxsize=10)
+def fit_pca_kernel3(curve, d_start, d_end, n = 3):
+    df = dfs_curves[curve]
+    df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
+
+    data = (df,)
+
+    n_kernels = 3
+    n_factors = n
+    
+    N_STAGES = 7
+
+    model, STAGES = xf.Model().init_stages(N_STAGES)
+    INPUTS, SETUP, PARAMS, FACTORS, KERNELS, KERNEL_AGG, ENCODE, DECODE = STAGES
+
+    model = (
+        model.add_input(xf.nodes.inputs.dfs.Input_DataFrame_Wide(
+            allow_missing_columns=True,
+            allow_missing_indices=False,
+            allow_new_columns=True,
+            allow_new_indices=False,
+            na_threshold_columns=0.,
+            na_threshold_indices=0.,
+        ))
+        .add_input(xf.nodes.inputs.nds.Input_NDArray(
+            numpy.linspace(0, 1, len(df.columns))
+        ))
+        .add_node(SETUP, xf.nodes.cov.vanilla.Cov(
+            data=xf.Loc.result(INPUTS, 0),
+        ), static = True)
+        .pipe(xf.nodes.transforms.scaling.Logistic.add_to_model(
+            SCALING, PARAMS=PARAMS
+        ))
+        .pipe(xf.nodes.transforms.scaling.Logistic.add_to_model(
+            SCALING, PARAMS=PARAMS
+        ))
+        .pipe(lambda m: m.add_node(
+            FACTORS,
+            xf.nodes.scaling.scalar.Linear1D(
+                data=xf.Loc.result(INPUTS, 0),
+            
+            # change to gaussian?
+
+            # logistic is similarly a bell curve
+            # so the idea here is we shift the origin slightly to the right
+            # and scale so as to slope fairly gradually
+        ))
+        .add_node(FACTORS, xf.nodes.TBC(
+            # slope could be 
+            # two gaussians
+            # one *-1 (presumably left negated, so upward slope)
+            # where generally the first is shifted such that the peak is outside of range
+            # but it can shift in (eg. 2010-2015 when front end was anchored, so level moves were further out in the curve)
+            # so where they meet, zero out, at the level zero crossing point
+        ))
+        .add_node(FACTORS, xf.nodes.TBC(
+            # arguably simplest is then just three gaussians?
+            # for curvature
+            # pos, neg, pos (if long short long)
+        ))
+        # NOTE: then look at parameter tying of eg. the shift
+        # between (say) the level and the curvature (though not necessarily: see 10-15)
+        
+        # NOTE: then extend into grid of tenor vs rating
+        # same gaussian basis functions, with perhaps some flattening / constraint
+        # try various combinations of which factor (s) are given which tenor / rating
+
+        # NOTE: the ideal is that we can interpret the shift parameters in time terms
+        # so they can be even mapped against economic calendars
+        # and / or at least interpreted in terms of specific calendar locations
+    )
+
+    model = model.init(data).optimise(
+        data,
+        iters = 5000,
+        rand_init=10, 
+        max_error_unchanged=0.5,
+    )
+    results = model.apply(data)
+
+    params = model.params[PARAMS]
+
+    # assumes centering?
+
+    cov = results[KERNEL_AGG][0]
+    
+    # weights = params[3]
+    # sigma = params[2]
+    a = params[0]
+    a2 = params[2]
+
+    c = results[SCALING][0]
+    c2 = results[SCALING][1]
+
+    sigma=params[4]
+    sigma2=params[5]
+
+    print(a, a2)
+    print(c, c2)
+    print(sigma, sigma2)
+
+    return df, cov
+```
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "USD-G")
+def plot_kernel3_cov(curve, d_start, d_end):
+    df, cov = fit_pca_kernel3(curve, d_start, d_end)
+    return xf.visuals.rendering.render_df_color_range(
+        pandas.DataFrame(
+            cov,
+            index=df.columns,
+            columns=df.columns,
+        ),
+        # v_min=-1.,
+        # v_max=.1,
+    )
 ```
-
-
-```{python}
-#| code-fold: true
-#| code-summary: "Sector Weights Chart"
-curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "USD-S")
-```
-
