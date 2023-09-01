@@ -8,6 +8,8 @@ execute:
   daemon: false
 ---
 
+In this post, ...
+
 This post is a collection of little visualisations intended to help one build up intuition for the notions of vector and matrix orthogonality.
 
 ```{python}

@@ -8,6 +8,9 @@ execute:
   daemon: false
 ---
 
+In this post, we 
+
+
 This is a reference post on PCA in which we walk through a toy example using random data, to help one build intuition for the geometry involved.
 
 ```{python}

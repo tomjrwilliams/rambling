@@ -1,5 +1,5 @@
 ---
-title: "PCA: Equity Returns"
+title: "Equity: PCA"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,9 +8,9 @@ execute:
   daemon: false
 ---
 
-In this post, we try out using PCA to extract market factors from daily equity returns.
+In this post, we demonstrate how to use PCA to extract market factors from daily equity return data.
 
-If using this in production, one would probably want to also include some kind of [covariance shrinkage](../pca_equity_shrunk/index.qmd).
+...
 
 ## Setup
 

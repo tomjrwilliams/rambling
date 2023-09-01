@@ -1,5 +1,5 @@
 ---
-title: "PCA: Rates"
+title: "Rates: Rolling Factor Clustering"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,7 +8,10 @@ execute:
   daemon: false
 ---
 
-In this post, ...
+In this post, we
+
+
+
 
 ## Setup
 

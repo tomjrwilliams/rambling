@@ -1,5 +1,5 @@
 ---
-title: "PCA, Structured Latent: Equity"
+title: "Equity: Rolling Structured Latent Factors"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,7 +8,10 @@ execute:
   daemon: false
 ---
 
-In this post, ...
+In this post, we show how to constrain ...
+
+
+
 
 ## Setup
 

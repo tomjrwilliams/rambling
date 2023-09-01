@@ -1,5 +1,5 @@
 ---
-title: "PCA: Rates"
+title: "Rates: Parametric Factors"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -9,6 +9,10 @@ execute:
 ---
 
 In this post, we 
+
+
+
+
 
 ## Setup
 
