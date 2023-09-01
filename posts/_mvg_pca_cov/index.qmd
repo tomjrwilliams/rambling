@@ -1,0 +1,32 @@
+
+
+intuion on how the beta 
+
+in the weigts
+
+
+maps up to the covariance matrix
+
+
+
+both the univariate via cov / var -> beta
+
+and the multivariate, how the beta squares out to covariance
+
+
+
+and hence how to sample from a given multivariate gaussian, via the backed out beta matrix
+
+
+
+also the relationship between the pca decomp of a covar
+
+to independent gaussians
+
+
+hence back up to the multi variate gaussian space
+
+
+
+
+

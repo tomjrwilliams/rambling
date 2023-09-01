@@ -1,5 +1,5 @@
 ---
-title: "PCA: Rates"
+title: "Rates: Tenor Kernel"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,7 +8,11 @@ execute:
   daemon: false
 ---
 
-In this post, ...
+In this post, we demonstrate how to design a yield curve covariance kernel function over tenor space.
+
+We then show how to use such a kernel to derive yield curve factor loadings for previously unseen tenors.
+
+Finally, we conclude with a review of how our kernel parameters vary with time, and implications w.r.t further work.
 
 ## Setup
 

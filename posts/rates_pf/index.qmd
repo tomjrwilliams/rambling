@@ -8,7 +8,7 @@ execute:
   daemon: false
 ---
 
-In this post, ...
+In this post, we 
 
 ## Setup
 
@@ -150,6 +150,7 @@ def fit_pca_kernel3(curve, d_start, d_end, n = 3):
         .pipe(lambda m: m.add_node(
             FACTORS,
             xf.nodes.scaling.scalar.Linear1D(
+                a=xf.Loc.result(SCALING)
                 data=xf.Loc.result(INPUTS, 0),
             
             # change to gaussian?

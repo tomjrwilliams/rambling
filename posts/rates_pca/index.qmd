@@ -1,5 +1,5 @@
 ---
-title: "PCA: Rates"
+title: "Rates: PCA"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,7 +8,11 @@ execute:
   daemon: false
 ---
 
-In this post, ...
+In this post, we demonstrate how to use PCA to extract a set of yield curve factors from historic market data.
+
+We then provide an intuitive interpretation for the factors in terms of the level, slope, and curvature of the yield curve through time.
+
+Before, finally, concluding with some examples of how the shape of the factors themselves vary through time, and the implications of this w.r.t. next steps.
 
 ## Setup
 
