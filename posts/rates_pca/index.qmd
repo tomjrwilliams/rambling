@@ -8,13 +8,13 @@ execute:
   daemon: false
 ---
 
-In this post, we demonstrate how to use PCA to extract a set of yield curve factors from historic market data.
+In this post, I'll demonstrate how to use PCA to extract a set of yield curve factors from historic market data.
 
-We then provide an intuitive interpretation for the factors in terms of the level, slope, and curvature of the yield curve through time.
+I'll then provide an intuitive interpretation for the factors in terms of the level, slope, and curvature of the yield curve through time.
 
-Before, finally, concluding with some examples of how the shape of the factors themselves vary through time, and the implications of this w.r.t. next steps.
+I'll conclude with some examples of how the shape of the factors themselves vary through time, and the implications of this w.r.t. next steps.
 
-## Setup
+### Setup
 
 ```{python}
 #| echo: false
@@ -31,10 +31,10 @@ Before, finally, concluding with some examples of how the shape of the factors t
 import os
 import sys
 import importlib
-sys.path.append("C:/hc/rambling")
-sys.path.append("C:/hc/xfactors/src")
-sys.path.append("C:/hc/xtuples/src")
-os.chdir("c:/hc/xfactors")
+sys.path.append("C:/rambling")
+sys.path.append("C:/xfactors/src")
+sys.path.append("C:/xtuples/src")
+os.chdir("c:/xfactors")
 ```
 
 ```{python}
@@ -51,8 +51,10 @@ import xfactors as xf
 
 ### Data
 
+We'll start by loading some yield data for US and DE swap and bond curves.
+
 ```{python}
-#| code-fold: false
+#| code-fold: true
 #| code-summary: "Returns"
 dfs_curves = xf.bt.data.curve_dfs(
     curves=xt.iTuple([
@@ -60,11 +62,7 @@ dfs_curves = xf.bt.data.curve_dfs(
         "YCGT0025",
         "YCSW0045",
         "YCGT0016",
-    ]).extend(
-        xf.bt.data.curves.CORP_USD
-    ).extend(
-        xf.bt.data.curves.CORP_EUR
-    ),
+    ]),
     dp="../xfactors/__local__/csvs"
 )
 dfs_curves = {
@@ -75,16 +73,21 @@ dfs_curves = {
 }
 ```
 
+Which we can plot as time series per tenor, as so:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
 def curve_chart(d_start, d_end, curve):
     df = dfs_curves[curve]
-    df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
+    df = xf.utils.dfs.index_date_filter(
+        df, date_start=d_start, date_end=d_end
+    )
     df = xf.bt.data.enumerate_strip_curve(df, curve, reverse=True)
     return xf.visuals.graphs.df_line_chart(
-        xf.utils.dfs.melt_with_index(df, index_as="date", variable_as="tenor"),
+        xf.utils.dfs.melt_with_index(
+            df, index_as="date", variable_as="tenor"
+        ),
         x="date",
         y="value",
         color="tenor",
@@ -92,24 +95,7 @@ def curve_chart(d_start, d_end, curve):
     )
 ```
 
-```{python}
-#| code-fold: true
-#| code-summary: "Sector Weights Chart"
-def tenor_chart(d_start, d_end, tenor, curves):
-    df = xf.bt.data.curves_by_tenor({
-        curve: df for curve, df in dfs_curves.items() if curve in curves
-    }, tenor = tenor)
-    df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
-    df = xf.bt.data.enumerate_strip_tenor(df, tenor, reverse=True)
-    return xf.visuals.graphs.df_line_chart(
-        xf.utils.dfs.melt_with_index(df, index_as="date", variable_as="curve"),
-        x="date",
-        y="value",
-        color="curve",
-        discrete_color_scale="Blues",
-    )
-```
-
+For example, US bond yields back to 2005:
 
 ```{python}
 #| code-fold: true
@@ -117,6 +103,7 @@ def tenor_chart(d_start, d_end, tenor, curves):
 curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "USD-G")
 ```
 
+And US swap yields for the same time frame:
 
 ```{python}
 #| code-fold: true
@@ -124,49 +111,25 @@ curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "USD-G")
 curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "USD-S")
 ```
 
-```{python}
-#| code-fold: true
-#| code-summary: "Sector Weights Chart"
-tenor_chart(
-    xf.utils.dates.y(2005),
-    xf.utils.dates.y(2023),
-    curves=xt.iTuple.from_keys(dfs_curves).filter(lambda s: "USD" in s),
-    tenor="3M",
-)
-```
+As you can see, we have significantly more tenors available in our swap curve.
 
-```{python}
-#| code-fold: false
-#| code-summary: "PCA Factor Corr"
-def curve_corr(curve, d_start, d_end):
-    df = dfs_curves[curve]
-    df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
-    return xf.visuals.rendering.render_df_color_range(
-        df.corr(),
-        v_min=-1.,
-        v_max=.1,
-    )
-curve_corr("USD-S", xf.utils.dates.y(2005), xf.utils.dates.y(2023))
-```
+### PCA
 
-```{python}
-#| code-fold: false
-#| code-summary: "PCA Factor Corr"
-def curve_cov(curve, d_start, d_end):
-    df = dfs_curves[curve]
-    df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
-    return xf.visuals.rendering.render_df_color_range(
-        df.cov(),
-    )
-curve_cov("USD-S", xf.utils.dates.y(2005), xf.utils.dates.y(2023))
-```
+[PCA](../pca) decomposes a given data matrix into a matrix of orthonormal factor loadings, and a matrix of independent unit-gaussian factor embeddings (see the linked post for more detail).
+
+There are roughly two ways to do this:
+
+- Eigen-decomposition of the input data covariance matrix.
+- Constrained minimisation of the re-constructed data matrix (following a round-trip encoding into factor space, and decoding back up into the original data space).
+
+For now, we'll go with the first of these.
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
 import functools
 @functools.lru_cache(maxsize=10)
-def fit_pca(curve, d_start, d_end, n = 3):
+def fit_pca(curve, d_start, d_end, n):
     df = dfs_curves[curve]
     df = xf.utils.dfs.index_date_filter(df, date_start=d_start, date_end=d_end)
     eigvals, eigvecs = xf.nodes.pca.vanilla.PCA.f(
@@ -175,12 +138,13 @@ def fit_pca(curve, d_start, d_end, n = 3):
     return df, eigvals.real, eigvecs.real
 ```
 
+We can plot the resulting factor loadings as bar charts.
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-def pca_weights_chart(curve, d_start, d_end):
-    df, eigvals, eigvecs = fit_pca(curve, d_start, d_end)
+def pca_weights_chart(curve, d_start, d_end, n):
+    df, eigvals, eigvecs = fit_pca(curve, d_start, d_end, n)
     weights = pandas.DataFrame(
         eigvecs.T,
         columns=df.columns,
@@ -195,13 +159,13 @@ def pca_weights_chart(curve, d_start, d_end):
     )
 ```
 
-
+And the resulting embeddings as time series, in a similar form to the above.
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-def pca_path_chart(curve, d_start, d_end):
-    df, eigvals, eigvecs = fit_pca(curve, d_start, d_end)
+def pca_path_chart(curve, d_start, d_end, n):
+    df, eigvals, eigvecs = fit_pca(curve, d_start, d_end, n)
     factors = jax.numpy.matmul(df.values, eigvecs)
     factors_df = pandas.DataFrame(
         factors,
@@ -217,89 +181,102 @@ def pca_path_chart(curve, d_start, d_end):
     )
 ```
 
+### Factors
 
-
-```{python}
-#| code-fold: true
-#| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-S", xf.utils.dates.y(2005), xf.utils.dates.y(2023))
-```
-
+For instance, below are the first three factors extracted from a history of the USD swap curve spanning from 2005 through to April 2023:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-S", xf.utils.dates.y(2020), xf.utils.dates.y(2023))
+pca_weights_chart("USD-S", xf.utils.dates.y(2005), xf.utils.dates.y(2023), 3)
 ```
 
+As one can see, there is a clear structure to the three components.
 
+The first 'level' component - capturing the majority of the variance of our yield curve - has loadings with all the same sign, downward sloping from a peak amongst the first few tenors, and is conventionally positive.
+
+The second component slopes (roughly) monotonically from one sign to another (conventionally from negative to positive), with a single zero point, and is known as the 'slope' factor.
+
+The third has two zero points, with the front- and back-end of the curve weighted counter to the belly, and is referred to as the 'curvature'.
+
+As one can see, we get a very similar result from the USD bond curve:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-S", xf.utils.dates.y(2010), xf.utils.dates.y(2015))
+pca_weights_chart("USD-G", xf.utils.dates.y(2005), xf.utils.dates.y(2023), 3)
 ```
 
+### Discussion
 
+Where things get particularly interesting is if we run the same decomposition on particular sub-sets of our yield history.
+
+For instance, on our swap curve, but between only 2010 and 2015:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-S", xf.utils.dates.y(2015), xf.utils.dates.y(2018))
+pca_weights_chart("USD-S", xf.utils.dates.y(2010), xf.utils.dates.y(2015), 3)
 ```
 
+As one can see, the shape of level component has both almost entirely inverted, and has more or completely flattened at the front end.
 
+Furthermore, our slope component is no longer monotonic, having developed a peak of it's own around the 18 month point.
+
+We get a similar result from the bond curve:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-G", xf.utils.dates.y(2005), xf.utils.dates.y(2023))
+pca_weights_chart("USD-G", xf.utils.dates.y(2010), xf.utils.dates.y(2015), 3)
 ```
 
+Though, here, the level component is even slightly negative at the front-end.
+
+These loadings do make some sense: during this period fed rates were firmly anchored at the zero lower bound, so there was relatively little market volatility in front-end rates.
+
+You can see this if you scroll back up to the yield curve time series above (observe the first few tenors pinned close to zero).
+
+As such, the first two components - each of which simply captures co-variation in yields - have very small loadings on the front end (as these tenors simply didn't move very much during this period).
+
+We also see something very similar in the EUR swaps factors for 2017 through 2019:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-G", xf.utils.dates.y(2015), xf.utils.dates.y(2018))
+pca_weights_chart("EUR-S", xf.utils.dates.y(2017), xf.utils.dates.y(2019), 3)
 ```
 
+Which, again, makes sense if you refer back to the relevant period in the yield curve history:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-G", xf.utils.dates.y(2010), xf.utils.dates.y(2015))
+curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-S")
 ```
 
-
+And, to some extent, in the German government bond curve from 2012 to 2016:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_weights_chart("USD-G", xf.utils.dates.y(2020), xf.utils.dates.y(2023))
+pca_weights_chart("EUR-DE", xf.utils.dates.y(2012), xf.utils.dates.y(2016), 3)
 ```
 
-
+Which, again, makes sense given the relative volatility of the front and long end of the curve during this period:
 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-pca_path_chart("USD-G", xf.utils.dates.y(2020), xf.utils.dates.y(2023))
+curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-DE")
 ```
 
+### Conclusion
 
+These are, admitteldy, particularly striking examples of factor instability - coinciding as they did with periods of especially unusual central bank monetary policy.
 
-Comments:
+That being said, it is nonetheless clear that, without further prior structure imposed on the shape of our components, the factors extracted by PCA can vary significantly through time.
 
-- 2010 very shallow front end weights (then even slope butterfly in swaps / bonds around 18m point)
+Whilst the variation is clearly less than that observed from equivalent analysis in [equity markets](../equity_pca), it is just as clearly worthy of both quantification, and further study.
 
-- Otherwise generally downward sloping slope (higher vol front end)
-
-- with possible roll up of peak to around c, 2-3y point
-
-- turn of the slope factor generally matches the peak of the belly of the butterfly (roughly)
-
-- peak in level is often around the turn in slope, mroe bonds than swaps
-
-but not always, can sometimes roll forward to sub 1y
-
-- Varying pivot point in curvature
+For instance, if the goal is to use the factors above as part of a forward-looking forecasting model, then an optimal model would likely not just be able to forecast the factor paths, but also their changing composition, over time.
