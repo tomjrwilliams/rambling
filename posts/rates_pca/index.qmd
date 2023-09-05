@@ -103,14 +103,14 @@ As you can see, we have significantly more tenors available in our swap curve.
 
 ### PCA
 
-[PCA](../pca) decomposes a given data matrix into a matrix of orthonormal factor loadings, and a matrix of independent unit-gaussian factor embeddings (see the linked post for more detail).
+[PCA](../pca) decomposes a given data matrix into a matrix of [orthonormal](../orthogonality) factor loadings, and a matrix of independent unit-gaussian factor embeddings (see the linked posts for more detail).
 
 There are roughly two ways to do this:
 
 - Eigen-decomposition of the input data covariance matrix.
 - Constrained minimisation of the re-constructed data matrix (following a round-trip encoding into factor space, and decoding back up into the original data space).
 
-For now, we'll go with the first of these, see [here](../rates_pca_smoothing) for a post on the second.
+For now, we'll go with the first of these, see [here](../ppca) for background on the second, and [here](../rates_pca_smoothing) for an example using the same rates data as here.
 
 ```{python}
 #| code-fold: true
@@ -264,7 +264,7 @@ We get a similar result from the bond curve:
 pca_weights_chart("USD-G", xf.utils.dates.y(2010), xf.utils.dates.y(2015), 3)
 ```
 
-Though, here, the level component is even slightly negative at the front-end.
+Here, the level component is even slightly negative at the front-end.
 
 These loadings make some sense: during this period fed rates were firmly anchored at the zero lower bound, so there was relatively little market volatility in front-end rates.
 
