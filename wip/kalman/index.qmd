@@ -1,5 +1,5 @@
 ---
-title: "Intuition: K-Means"
+title: "(WIP) Intuition: Kalman Filtering"
 author: "Tom Williams"
 date: "2023-08-07"
 categories: []
@@ -8,4 +8,4 @@ execute:
   daemon: false
 ---
 
-In this post, we build on the previous ... 
+(Work In Progress)

@@ -1,5 +1,5 @@
 ---
-title: "Equity: Rolling Structured Latent Factors"
+title: "(WIP) Equity: Rolling Structured Latent Factors"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,10 +8,7 @@ execute:
   daemon: false
 ---
 
-In this post, we show how to constrain ...
-
-
-
+(Work In Progress)
 
 ## Setup
 
@@ -382,25 +379,6 @@ latent_bar_chart(
 )
 ```
 
-so that we can still re fit new periods using optimise
-by flagging out the latents
-
-
-how to keep previous factor weights per period, in such a way that we can re-apply to new periods?
-we don't - the periods are locked into the model setup?
-what we keep are the latent means?
-
-
-a periodised model without shared params, which we can be used to reoptimise
-is essentially independent by period - so there's no use to extensibility
-
--> periodise by adding separate inputs for each period?
-or, by adding a periodised dataframe input (this)
-that returns a tuple of appropriately periodised ndarray
-
-
-similarly if we fit latent tenor embeddings in a kernel function approach
-where the parameters on the kernel function vary by period, but the embedding itself doesnt
 
 ### Results
 

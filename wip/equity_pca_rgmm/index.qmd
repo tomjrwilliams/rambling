@@ -1,5 +1,5 @@
 ---
-title: "Equity: Rolling Factor Clustering"
+title: "(WIP) Equity: Rolling Factor Clustering"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,10 +8,9 @@ execute:
   daemon: false
 ---
 
+(Work In Progress)
+
 In this post, we demonstrate how to use Gaussian Mixture Models to cluster the factors extracted from a rolling PCA over daily equity return data.
-
-
-
 
 ## Setup
 

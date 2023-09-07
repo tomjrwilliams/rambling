@@ -73,7 +73,11 @@ dfs_curves = {
 }
 ```
 
-For example, US bond yields back to 2005:
+Where, here, we filter to only those rows containing data for at least ... of tenors, out of those tenors containing data for at least ... of rows.
+
+For an example using the full data-set, including missing entries, see [here](../rateS_pca_smoothing) for example.
+
+This gives us back, US bond yields back to 2010 (with the 2005-2010 period filterd for lack of data):
 
 ```{python}
 #| code-fold: true
@@ -86,7 +90,7 @@ xf.bt.data.curves.curve_chart(
 )
 ```
 
-And US swap yields for the same time frame:
+And US swap yields for the full period 2005 to 2023:
 
 ```{python}
 #| code-fold: true
@@ -312,12 +316,18 @@ That being said, it is nonetheless clear that, without further prior structure i
 
 PCA is a useful first step in decomposing a yield curve into a smaller number of more manageable factors.
 
-However, vanilla PCA - particularly in the eigen-decomposition form we used above - suffers from a number of limitations:
+However, vanilla PCA - particularly in the eigen-decomposition form we used above - suffers from a couple of key limitations:
 
 - incompatibility with missing data (hence the truncated history of our USD bond decomposition).
 
-- factor loading volatility, given the relatively un-opionated nature of the decomposition (diagonal variance maximisation).
+- factor loading instability, given the relatively un-opionated nature of the decomposition (diagonal variance maximisation).
 
-We'll deal with the first of these first via [matrix completion](../rates_pca_smoothing), and then more comprehensively by [combining](../rates_ksmoothing) this with a covariance [kernel](../rates_pca_k).
+We can naively deal with the first of these by calculating our covariance matrix pair-wise, in a way that's robust to missing data, as in [here](../rates_pca_missing).
 
-We'll deal with the second by moving from discrete loading vectors to [parametric factors](../rates_pf), on which we can impose a greater deal of prior knowledge.
+However, this can lead to inaccurate covariance estimates for tenors under-represented in our dataset. This can be somewhat improved upon by moving to a covariance [kernel](../rates_pca_k) defined over tenor space, however we're still unable to calculate the embedding values for dates with missing tenor yields.
+
+An alternative approach, which does allow for latent embedding predictions over dates with missing yields, is to use [matrix completion](../rates_pca_smoothing), in which we fit our factor loadings using a constrained L2 minimisation rather than eigen-decomposition.
+
+This, then, can be naturally [combined](../rates_ksmoothing) with our covariance tenor-kernel, to allow us to make yield predictions for entirely unseen new tenors.
+
+A final step, and one that naturally deals with both missing data and the second limitation (of factor loading instability), is to move away from discrete loading vectors entirely, and to instead use [parametric factors](../rates_pf) function, on which we can impose a greater deal of prior knowledge (again, fit by a constrained l2 minimisation).

@@ -1,0 +1,94 @@
+---
+title: "(WIP) Rates: Matrix Completion & Reversion"
+author: "Tom Williams"
+date: "2023-08-08"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+(Work In Progress)
+
+In this post, we demonstrate how to use matrix completion to make predictions for missing values in a given yield curve history.
+
+We then show how to use this approach to make forward looking reversion predictions for particular tenors on a given yield curve.
+
+We conclude by reviewing the effectiveness of this approach in a mean squared error sense, before discussing how we might review in terms of an actual trading strategy.
+
+## Setup
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/rambling")
+sys.path.append("C:/xtuples/src")
+sys.path.append("C:/xfactors/src")
+os.chdir("c:/xfactors")
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import functools
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples as xt
+import xfactors as xf
+```
+
+### Data
+
+We'll begin by loading the same yield curve data as for our post on [rates pca](../rates_pca).
+
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+dfs_curves = xf.bt.data.curves.curve_dfs(
+    curves=xt.iTuple([
+        "YCSW0023",
+        "YCGT0025",
+        "YCSW0045",
+        "YCGT0016",
+    ]),
+    dp="../xfactors/__local__/csvs"
+)
+```
+
+In this case, however, we'll retain the full data-set, complete with missing values.
+
+```{python}
+#| code-fold: true
+#| code-summary: "USD-G Yields: 2005-2023"
+xf.bt.data.curves.curve_chart(
+    dfs_curves, 
+    xf.utils.dates.y(2005), 
+    xf.utils.dates.y(2023), 
+    "USD-G"
+)
+```
+
+This is particularly obvious for our government bond curve, which gets pretty sparse pre-2010.
+
+### PPCA: Constrained L2 Minimisation
+
+We'll now use matrix completion to attempt to fill in the missing values.
+
+We saw in this post on [ppca](../ppca) that one can fit an equivalent set of factor loadings and embeddings to that of [pca](../pca) using a constrained L2 minimisation of the reconstruction error, rather than an eigen-decomposition.
+
+Here, we'll go one step further, we'll attempt to jointly fit both the orthogonal factor loading matrix, and the particular missing values from our original data-set, under the same constrained l2 minimisation.

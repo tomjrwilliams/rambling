@@ -72,6 +72,8 @@ dfs_curves = {
 }
 ```
 
+Where we again filter to only those rows containing data for at least ... of tenors, out of those tenors containing data for at least ... of rows.
+
 ### Covariance
 
 As one can see, rates curves generally have a particular structure to their covariance matrix.
@@ -121,6 +123,31 @@ Let's say that we can define such a kernel over an input space consisting of all
 This would then allow us to generate a covariance matrix between pairs of such tenors - again, whether market traded or not.
 
 With this, we can then derive a matrix of factor loadings for our tenor set - even for those for which we have no observed market data.
+
+### Tenor space
+
+First, we have to decide how to represent our tenors for the kernel function.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Tenor embedding"
+def tenor_embedding(tenors):
+    return jax.numpy.linspace(0, 1, tenors.len())
+```
+
+Here, we'll first cast them to a year fraction in months, before passing them through ...
+
+This gives us back something like the below:
+
+```{python}
+#| code-fold: true
+#| code-summary: "Tenor embedding"
+def plot_tenor_embedding(tenors):
+    embedding = tenor_embedding(tenors)
+
+```
+
+Which, as you can see, is ...
 
 ### Linear kernel
 
@@ -196,7 +223,7 @@ def fit_tenor_kernel_linear(curve, d_start, d_end, n = 3):
         loc_agg.result(), locs["cov"].result()
     ), constraint=True)
 
-    data = (df.cov(), numpy.linspace(0, 1, len(df.columns)),)
+    data = (df.cov(), tenor_embedding(xt.iTuple(df.columns)))
 
     model = model.init(data).optimise(
         data,
@@ -312,7 +339,7 @@ def fit_tenor_kernel_linear_2(curve, d_start, d_end, n = 3):
         r=xf.Loc.result(SETUP, 0),
     ), constraint=True)
 
-    data = (df.cov(), numpy.linspace(0, 1, len(df.columns)),)
+    data = (df.cov(), tenor_embedding(xt.iTuple(df.columns)))
 
     model = model.init(data).optimise(
         data,
@@ -408,7 +435,7 @@ def fit_tenor_kernel_rbf_linear_2(curve, d_start, d_end, n = 3):
         r=locs["cov"].result(),
     ))
     
-    data = (df.cov(), numpy.linspace(0, 1, len(df.columns)),)
+    data = (df.cov(), tenor_embedding(xt.iTuple(df.columns)))
 
     model = model.init(data).optimise(
         data,
@@ -458,7 +485,7 @@ Let's now try applying our model on an expanded tenor set.
 @functools.lru_cache(max_size=5)
 def plot_synthetic_covariance(tenors):
 
-    results = model.apply((None, numpy.linspace(0, 1, len(tenors))))
+    results = model.apply((None, tenor_embedding(tenors)))
     
     cov = locs["agg"].result().access(results)
 

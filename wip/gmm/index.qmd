@@ -1,5 +1,5 @@
 ---
-title: "Intuition: Alpha Beta Filtering"
+title: "(WIP) Intuition: Gaussian Mixture Model"
 author: "Tom Williams"
 date: "2023-08-07"
 categories: []
@@ -8,4 +8,4 @@ execute:
   daemon: false
 ---
 
-In this post, we 
+(Work In Progress)

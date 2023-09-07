@@ -1,5 +1,5 @@
 ---
-title: "Rates: Parametric Factor Alternatives"
+title: "(WIP) Rates: Nelson Siegel Family"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,6 +8,6 @@ execute:
   daemon: false
 ---
 
-In this post, we 
+(Work In Progress)
 
 

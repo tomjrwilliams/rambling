@@ -1,5 +1,5 @@
 ---
-title: "Rates: Gaussian Process, Tenor Kernel"
+title: "(WIP) Rates: Gaussian Process, Tenor Kernel"
 author: "Tom Williams"
 date: "2023-08-08"
 categories: []
@@ -8,8 +8,8 @@ execute:
   daemon: false
 ---
 
+(Work In Progress)
+
 In this post, we demonstrate how to use our tenor covariance kernel to make yield curve predictions using a Gaussian Process (GP).
 
 We then show how to use such a Gaussian Process to extend our previous work on yield curve reversion to also include probability density estimates.
-
-Finally, we conclude ... 
