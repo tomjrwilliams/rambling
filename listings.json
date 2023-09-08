@@ -2,9 +2,31 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/pca_equity/index.html",
+      "/posts/rates_pca/index.html",
+      "/posts/equity_pca/index.html",
       "/posts/orthogonality/index.html",
       "/posts/pca/index.html"
+    ]
+  },
+  {
+    "listing": "/wip.html",
+    "items": [
+      "/wip/ab/index.html",
+      "/wip/equity_pca_rgmm/index.html",
+      "/wip/gmm/index.html",
+      "/wip/gp/index.html",
+      "/wip/kalman/index.html",
+      "/wip/kmeans/index.html",
+      "/wip/linreg/index.html",
+      "/wip/pca_k/index.html",
+      "/wip/ppca/index.html",
+      "/wip/rates_gp/index.html",
+      "/wip/rates_ksmoothing/index.html",
+      "/wip/rates_ns_family/index.html",
+      "/wip/rates_pca_rgmm/index.html",
+      "/wip/rates_pca_smoothing/index.html",
+      "/wip/rates_pf/index.html",
+      "/wip/rates_rpf/index.html"
     ]
   }
 ]

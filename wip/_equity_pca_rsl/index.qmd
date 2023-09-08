@@ -1,0 +1,388 @@
+---
+title: "Equity: Rolling Structured Latent Factors"
+author: "Tom Williams"
+categories: []
+draft: false
+execute:
+  daemon: false
+---
+
+Work In Progress
+
+## Setup
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Auto reload"
+%load_ext autoreload
+%autoreload 2
+```
+
+```{python}
+#| echo: false
+#| code-fold: true
+#| code-summary: "Environment"
+import os
+import sys
+import importlib
+sys.path.append("C:/hc/src")
+sys.path.append("C:/hc/rambling")
+sys.path.append("C:/hc/xfactors/src")
+sys.path.append("C:/hc/xtuples/src")
+os.environ["MODULE"] = "c:/hc/src/"
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Imports"
+import numpy
+import pandas
+import jax
+import jax.numpy
+
+import xtuples as xt
+import xfactors as xf
+
+import hcbt.data.prices.int as prices
+import hcbt.algos.universe.int as universe
+import hcbt.algos.universe.configs as configs
+```
+
+### Data
+
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+def vol_scale(df, alpha = 2 / 90):
+    std = df.ewm(alpha = alpha).std()
+    return df.divide(std)
+```
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+df_returns = prices.returns_df(
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
+    indices=configs.INDICES,
+)
+# df_returns = vol_scale(vol_scale)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Returns"
+df_returns.head()
+```
+
+The returns are from bloomberg, and include all cash and non-cash adjustments (in production we have a separate internal ticker for the dividend stream from a given name, but that's a little over-complicated for our purposes here).
+
+We'll also load the relevant index membership mapping tables for our universe:
+
+```{python}
+#| code-fold: false
+#| code-summary: "Index Membership"
+dfs_indices = universe.rolling_indices(
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
+    indices=configs.INDICES,
+)
+df_universe = universe.index_union(dfs_indices)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Sector Membership"
+dfs_sectors = universe.rolling_indices(
+    xf.utils.dates.y(2005),
+    xf.utils.dates.y(2023, m=4),
+    sectors=configs.GICS_SECTORS,
+)
+```
+
+
+### Model
+
+we use flags to specify not to re-fit the latent weights / means
+
+```{python}
+#| code-fold: false
+#| code-summary: "Model"
+N_STAGES = 5
+model, STAGES = xf.Model().init_stages(N_STAGES)
+INPUTS, SETUP, PARAMS, ENCODE, DECODE, STRUCTURE = STAGES
+
+def define_model(n_factors, n_noise):
+    model, stages = xf.Model().init_stages(N_STAGES)
+    assert stages.len() == STAGES.len()
+
+    n = n_factors
+
+    model = (
+        model.add_input(xf.nodes.inputs.dfs.Input_DataFrame_Wide_Rolling(
+            step=2,
+            window=4,
+            unit="M",
+            allow_missing_columns=False,
+            allow_missing_indices=True,
+            allow_new_columns=False,
+            allow_new_indices=True,
+            na_threshold_columns=0.,
+            na_threshold_indices=0.,
+        ))
+        .add_input(xf.nodes.inputs.dfs.Input_DataFrame_Wide(
+            allow_missing_columns=True,
+            allow_missing_indices=False,
+            allow_new_columns=True,
+            allow_new_indices=False,
+            na_threshold_columns=0.,
+            na_threshold_indices=0.,
+        ))
+        .add_node(SETUP, xf.nodes.inputs.dfs.Slice_DataFrame_Wide_Rolling_Columns(
+            rolling=xf.Loc.result(INPUTS, 0),
+            slicing=xf.Loc.result(INPUTS, 1),
+            scale=xf.utils.scaling.Unit_Sum(axis=1)
+        ), static = True)
+        .add_node(SETUP, xf.nodes.cov.vanilla.VCov(
+            data=xf.Loc.result(INPUTS, 0),
+        ), static = True)
+        .add_node(PARAMS, xf.nodes.params.weights.Orthogonal(
+            n=n_factors,
+            data=xf.Loc.result(INPUTS, 0),
+        ))
+        .add_node(PARAMS, xf.nodes.params.random.Gaussian(
+            shape=(n_factors, configs.GICS_SECTORS.len()),
+        ))
+        .add_node(PARAMS, xf.nodes.params.scalar.VScalar(
+            data=xf.Loc.result(INPUTS, 0),
+            v=numpy.ones(n_factors),
+        ))
+        # .add_node(ENCODE, xf.nodes.pca.rolling.PCA_Rolling_Encoder(
+        #     n=n,
+        #     weights=xf.Loc.param(PARAMS, 0),
+        #     data=xf.Loc.result(INPUTS, 0),
+        # ))
+        .add_node(ENCODE, xf.nodes.pca.rolling.PCA_Rolling_Encoder_Trimmed(
+            n=n,
+            weights=xf.Loc.param(PARAMS, 0),
+            data=xf.Loc.result(INPUTS, 0),
+            loadings=xf.Loc.param(PARAMS, 2),
+            clamp=3.,
+        ))
+        .add_node(DECODE, xf.nodes.pca.rolling.PCA_Rolling_Decoder(
+            # n=n,
+            weights=xf.Loc.param(PARAMS, 0),
+            factors=xf.Loc.result(ENCODE, 0),
+        ))
+        .add_node(STRUCTURE, xf.nodes.pca.structured.rolling.PCA_Rolling_LatentWeightedMean_MSE(
+            weights_pca=xf.Loc.param(PARAMS, 0),
+            weights_structure=xf.Loc.result(SETUP, 0),
+            latents=xf.Loc.param(PARAMS, 1),
+            share_factors=True,
+        ))
+        .add_constraint(xf.nodes.constraints.loss.Constraint_Minimise(
+            data=xf.Loc.result(STRUCTURE, 0, 1),
+        ))
+        .add_constraint(xf.nodes.constraints.linalg.Constraint_VOrthonormal(
+            data=xf.Loc.param(PARAMS, 0),
+            T=True,
+        ), not_if=dict(score=True))
+        # .add_constrain 
+        .add_constraint(xf.nodes.constraints.loss.Constraint_VMSE(
+            l=xf.Loc.result(INPUTS, 0),
+            r=xf.Loc.result(DECODE, 0),
+        ))
+    )
+
+    # todo, try adding a further shape constraint that pc0 is positive
+
+    return model
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+def fit_model(d_start, d_end, n_factors, n_noise):
+    # weights_structure
+    # latent_features * features
+    # not one hot: include the inverse proportion weights
+
+    df_sector_mapping = pandas.DataFrame(
+        [
+            [
+                0 if ticker not in df_sector.columns
+                else (1. if df_sector[ticker].any() else 0.)
+                for ticker in df_returns.columns
+            ]
+            for sector, df_sector in dfs_sectors.items()
+        ],
+        columns=df_returns.columns,
+        index=list(dfs_sectors.keys()),
+    )
+
+    if n_noise > 0:
+        # if given, noise has equal weights on all columns
+        # but with a fixed zero on the altents
+        # so means a concatenation node on the param and a zero array
+
+        # do that by an entirely separate set of latents
+
+        pass
+
+    data = (
+        (lambda _df: _df.assign(
+            index=xf.utils.dates.date_index(_df.index.values)
+        ).set_index("index"))(df_returns.loc[
+            (df_returns.index >= d_start) & (df_returns.index <= d_end)
+        ]),
+        df_sector_mapping,
+    )
+
+    model = define_model(n_factors, n_noise).init(data).optimise(
+        data,
+        iters = 2500,
+        rand_init=10, 
+        max_error_unchanged=0.5,
+    )
+    results = model.apply(data)
+
+    params = model.params
+    weights = params[PARAMS][0]
+    weights_agg = results[STRUCTURE][0][0]
+    latents = params[PARAMS][1]
+    loadings = params[PARAMS][2]
+
+    return model, weights, weights_agg, latents, loadings
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+def latent_bar_chart(d_start, d_end, n_factors, n_noise):
+    model, weights, weights_agg, latents, loadings = fit_model(d_start, d_end, n_factors, n_noise)
+
+    loadings = xt.ituple(loadings).map(jax.nn.softmax)
+    av_loadings = numpy.stack(loadings.pipe(list)).mean(axis=0)
+
+    def f_round(v, dp):
+        v_str = str(round(v, dp)).split(".")
+        return ".".join([v_str[0], v_str[1][:dp]])
+
+    factor_order = numpy.argsort(numpy.flip(numpy.argsort(av_loadings)))
+    FACTORS = [
+        "{}:{}".format(
+            factor_order[f], f_round(av_loadings[f], 3)
+        ) for f in range(n_factors)
+    ]
+    
+    df = xf.utils.dfs.melt_with_index(
+        pandas.DataFrame(
+            latents,
+            columns=configs.GICS_SECTORS,
+            index=FACTORS
+        ),
+        index_as="factor",
+    )
+    f_error_bar = lambda vs: numpy.max(vs) - numpy.min(vs)
+    error_bars = [
+        f_error_bar([
+            w_agg[f][s]
+            for i, w_agg in weights_agg.enumerate()
+        ])
+        for f in range(n_factors) for s in range(len(configs.GICS_SECTORS))
+    ]
+    return xf.visuals.graphs.df_facet_bar_chart(
+        df.assign(error=error_bars).sort_values(by=["factor", "variable"]),
+        x="variable",
+        y="value",
+        facet_row="factor",
+        error_y="error",
+        title="{}-{}".format(d_start, d_end)
+    )
+```
+
+generally the above seem sensible ish
+the error bars are enormous though
+
+perhaps where a general error factor comes in
+weights all equal, latents as zeros
+single noise term conatenated into factor weights
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2010), xf.utils.dates.y(2022), 5, 0
+)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2019), xf.utils.dates.y(2022), 5, 0
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2014), xf.utils.dates.y(2017), 5, 0
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2007), xf.utils.dates.y(2010), 5, 0
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2010), xf.utils.dates.y(2013), 5, 0
+)
+```
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2007), xf.utils.dates.y(2013), 5, 0
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2010), xf.utils.dates.y(2016), 5, 0
+)
+```
+
+
+```{python}
+#| code-fold: false
+#| code-summary: "Run"
+latent_bar_chart(
+    xf.utils.dates.y(2015), xf.utils.dates.y(2022), 5, 0
+)
+```
+
+
+### Results
+
+
+### Interpretation
+
+
+### Related posts
