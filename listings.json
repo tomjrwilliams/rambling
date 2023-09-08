@@ -3,7 +3,7 @@
     "listing": "/index.html",
     "items": [
       "/posts/rates_pca/index.html",
-      "/posts/equity_pca/index.html",
+      "/posts/pca_equity/index.html",
       "/posts/orthogonality/index.html",
       "/posts/pca/index.html"
     ]
