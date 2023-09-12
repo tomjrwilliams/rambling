@@ -8,9 +8,7 @@ execute:
   daemon: false
 ---
 
-In this post, we demonstrate how to use PCA to extract market factors from daily equity return data.
-
-...
+In this post, I'll demonstrate how to use PCA to extract market factors from daily equity return data.
 
 ## Setup
 
@@ -29,11 +27,10 @@ In this post, we demonstrate how to use PCA to extract market factors from daily
 import os
 import sys
 import importlib
-sys.path.append("C:/hc/src")
-sys.path.append("C:/hc/rambling")
-sys.path.append("C:/hc/xfactors/src")
-sys.path.append("C:/hc/xtuples/src")
-os.environ["MODULE"] = "c:/hc/src/"
+sys.path.append("C:/rambling")
+sys.path.append("C:/xfactors/src")
+sys.path.append("C:/xtuples/src")
+os.chdir("c:/xfactors")
 ```
 
 ```{python}
@@ -46,10 +43,6 @@ import jax.numpy
 
 import xtuples as xt
 import xfactors as xf
-
-import hcbt.data.prices.int as prices
-import hcbt.algos.universe.int as universe
-import hcbt.algos.universe.configs as configs
 ```
 
 ### Data
@@ -59,10 +52,8 @@ We'll start by loading some daily close to close total returns data, given a rol
 ```{python}
 #| code-fold: false
 #| code-summary: "Returns"
-df_returns = prices.returns_df(
-    xf.utils.dates.y(2005),
-    xf.utils.dates.y(2023, m=4),
-    indices=configs.INDICES,
+df_returns = xf.bt.data.returns.returns_df(
+    indices=xf.bt.data.indices.EU,
 )
 ```
 
@@ -73,12 +64,10 @@ We'll also load the relevant index membership mapping tables for our universe:
 ```{python}
 #| code-fold: false
 #| code-summary: "Index Membership"
-dfs_indices = universe.rolling_indices(
-    xf.utils.dates.y(2005),
-    xf.utils.dates.y(2023, m=4),
-    indices=configs.INDICES,
+dfs_indices = xf.bt.data.universes.universe_mapping(
+    indices=xf.bt.data.indices.EU,
 )
-df_universe = universe.index_union(dfs_indices)
+df_universe = xf.bt.data.universes.universe_union(dfs_indices)
 ```
 
 And some GICS sector mapping tables, as these will be useful later:
@@ -86,10 +75,8 @@ And some GICS sector mapping tables, as these will be useful later:
 ```{python}
 #| code-fold: false
 #| code-summary: "Sector Membership"
-dfs_sectors = universe.rolling_indices(
-    xf.utils.dates.y(2005),
-    xf.utils.dates.y(2023, m=4),
-    sectors=configs.GICS_SECTORS,
+dfs_sectors = xf.bt.data.universes.universe_mapping(
+    sectors=xf.bt.data.gics.SECTORS,
 )
 ```
 
@@ -114,10 +101,10 @@ Which we'll then wrap into a convenience function.
 def get_returns(d_start, d_end, threshold=1.):
     tickers = xt.iTuple(df_returns.columns).filter(
         in_universe,
-        df=xf.dfs.index_date_filter(df_universe, d_start, d_end),
+        df=xf.utils.dfs.index_date_filter(df_universe, d_start, d_end),
         threshold=threshold,
     ).pipe(list) 
-    return xf.dfs.index_date_filter(
+    return xf.utils.dfs.index_date_filter(
         df_returns, d_start, d_end
     )[tickers].dropna()
 ```
@@ -165,7 +152,7 @@ As expected, the factors we extract are linearly independent (have diagonal cova
 #| code-summary: "PCA Factor Corr"
 def pca_factor_corr(d_start, d_end, n):
     _, _, factors, _ = apply_pca(d_start, d_end, n)
-    return xf.rendering.render_df_color_range(
+    return xf.visuals.rendering.render_df_color_range(
         pandas.DataFrame(factors).corr(),
         v_min=-1.,
         v_max=.1,
@@ -180,8 +167,8 @@ And are each univariate gaussian, with descending variance from PC0 down to PC2 
 #| code-summary: "PCA Factor Density"
 def pca_factor_density_chart(d_start, d_end, n):
     _, _, factors, df = apply_pca(d_start, d_end, n)
-    return xf.graphs.df_density_chart(
-        xf.dfs.melt_with_index(
+    return xf.visuals.graphs.df_density_chart(
+        xf.utils.dfs.melt_with_index(
             pandas.DataFrame(
                 factors,
                 columns=list(range(factors.shape[1])),
@@ -218,8 +205,8 @@ One way to visualise them is with a simple bar chart:
 def pca_factor_weight_chart(d_start, d_end, n):
     weights = pca_weights(d_start, d_end, n)
     n = len(weights.index)
-    return xf.graphs.df_facet_bar_chart(
-        xf.dfs.melt_with_index(weights, index_as="factor"),
+    return xf.visuals.graphs.df_facet_bar_chart(
+        xf.utils.dfs.melt_with_index(weights, index_as="factor"),
         x="variable",
         y="value",
         facet="factor",
@@ -257,7 +244,7 @@ Certain industries will be under or over-represented in our universe, in a given
 #| code-summary: "Sector Representation"
 def sector_map_chart(d_start, d_end, n):
     sector_map = sector_tickers(d_start, d_end, n)
-    return xf.graphs.df_bar_chart(
+    return xf.visuals.graphs.df_bar_chart(
         pandas.DataFrame({
             s: [len(v)] for s, v in sector_map.items()
         }).melt(),
@@ -283,8 +270,8 @@ def pca_sector_weights_chart(d_start, d_end, n):
         s: sector_weights[s] / len(ts)
         for s, ts in sector_map.items()
     })
-    return xf.graphs.df_facet_bar_chart(
-        xf.dfs.melt_with_index(scaled_weights, index_as="factor"),
+    return xf.visuals.graphs.df_facet_bar_chart(
+        xf.utils.dfs.melt_with_index(scaled_weights, index_as="factor"),
         x="variable",
         y="value",
         facet="factor",
@@ -316,7 +303,7 @@ Where, again, certain indices will be over or under-represented in our universe:
 #| code-summary: "Index Representation"
 def index_map_chart(d_start, d_end, n):
     index_map = index_tickers(d_start, d_end, n)
-    return xf.graphs.df_bar_chart(
+    return xf.visuals.graphs.df_bar_chart(
         pandas.DataFrame({
             i: [len(v)] for i, v in index_map.items()
         }).melt(),
@@ -342,8 +329,8 @@ def pca_index_weights_chart(d_start, d_end, n):
         i: index_weights[i] / len(ts)
         for i, ts in index_map.items()
     })
-    return xf.graphs.df_facet_bar_chart(
-        xf.dfs.melt_with_index(index_weights, index_as="factor"),
+    return xf.visuals.graphs.df_facet_bar_chart(
+        xf.utils.dfs.melt_with_index(index_weights, index_as="factor"),
         x="variable",
         y="value",
         facet="factor",
@@ -431,7 +418,7 @@ Where we can see how the EU financials index (SX7E) is moving with the IBEX and 
 
 As noted above, vanilla PCA - at least in the eigendecomposition form above - requires a full data matrix, with no missing values. This can be quite limiting, especially when dealing with real data (as opposed to the above, somewhat stylised, daily equity returns).
 
-That being said, this is fairly simple to deal with via, for instance, an [irregular covariance](../pca_equity_irregulary/index.qmd) matrix, or via some kind of [kernel](../kernel_pca/index.qmd) function.
+That being said, this is fairly simple to deal with, for instance, by reformulating our decomposition in terms of a [constrained minimisation](../../wip/ppca/index.qmd), or by calculating our covariance using some kind of [kernel](../../wip/pca_k/index.qmd) function (rather than the data directly).
 
 More concering, as we've seen, is that without any kind of prior model for how different features 'should' be related to one another, the factors we extract can often vary quite significantly when ran over different samples periods.
 
@@ -439,12 +426,10 @@ Indeed, given that we fit a single weight for each ticker in our universe in a g
 
 As our universe changes, we're thus left without any factor weights for new tickers entering our universe (forcing us, for instance, to continually refit our factor matrices).
 
-There are, however, a number of ways that we can deal with this - for instance, by first mapping our tickers into some kind of latent space, before assigning them factor weights (see [here](../lgp_pca_equity/index.qmd)).
+There are, however, a number of ways that we can deal with this - for instance, by constraining our rolling weights towards stability in sector space (see [here](../../wip/_equity_pca_rsl/index.qmd)).
 
 ### Related posts
 
-See [here](../pca_rates/index.qmd) for a similar post using PCA to decompose bond / swap yield curve factors.
+See [here](../rates_pca/index.qmd) for a similar post using PCA to decompose bond / swap yield curve factors.
 
 See [here](../pca/index.qmd) for a toy PCA example intended to help build up intuition for the geometry of the eigendecomposition above, and [here](../orthogonality/index.qmd) for some notes on orthogonality (on which said decomposition relies).
-
-See [here](../pca_equity_shrunk/index.qmd) for a more production-ready example, also encorporating Ledoit-Wolf covariance shrinkage.

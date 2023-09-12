@@ -6,7 +6,6 @@ website:
   navbar:
     right:
       - wip.qmd
-      - about.qmd
       - icon: github
         href: https://github.com/tomjrwilliams
       - icon: linkedin

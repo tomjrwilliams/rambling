@@ -1,7 +1,7 @@
 ---
 title: "Rates: PCA"
 author: "Tom Williams"
-date: "2023-08-08"
+date: "2023-09-08"
 categories: []
 draft: false
 execute:
@@ -289,7 +289,7 @@ Which, again, makes sense if you refer back to the relevant period in the yield 
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-S")
+xf.bt.data.curves.curve_chart(dfs_curves, xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-S")
 ```
 
 And, to some extent, in the German government bond curve from 2012 to 2016:
@@ -305,7 +305,7 @@ Which, again, makes sense given the relative volatility of the front and long en
 ```{python}
 #| code-fold: true
 #| code-summary: "Sector Weights Chart"
-curve_chart(xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-DE")
+xf.bt.data.curves.curve_chart(dfs_curves, xf.utils.dates.y(2005), xf.utils.dates.y(2023), "EUR-DE")
 ```
 
 These are, admitteldy, particularly striking examples of factor instability - coinciding as they did with periods of especially unusual central bank monetary policy.

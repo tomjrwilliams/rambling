@@ -1,5 +1,5 @@
 ---
-title: "Rates: Parametric Factors"
+title: "Intuition: Multivariate Linear Regression"
 author: "Tom Williams"
 categories: []
 draft: false

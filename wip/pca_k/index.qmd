@@ -1,5 +1,5 @@
 ---
-title: "Rates: Parametric Factors"
+title: "Intuition: PCA (Kernel)"
 author: "Tom Williams"
 categories: []
 draft: false

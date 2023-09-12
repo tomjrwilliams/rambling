@@ -1,13 +1,12 @@
 ---
-title: "(WIP) Rates: Nelson Siegel Family"
+title: "Rates: Nelson Siegel Family"
 author: "Tom Williams"
-date: "2023-08-08"
 categories: []
 draft: false
 execute:
   daemon: false
 ---
 
-(Work In Progress)
+Work In Progress
 
 

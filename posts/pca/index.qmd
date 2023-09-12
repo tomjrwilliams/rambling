@@ -8,10 +8,7 @@ execute:
   daemon: false
 ---
 
-In this post, we 
-
-
-This is a reference post on PCA in which we walk through a toy example using random data, to help one build intuition for the geometry involved.
+This is a reference post on PCA in which we walk through a simple toy example, to help build intuition for the geometry involved.
 
 ```{python}
 #| echo: false
@@ -24,10 +21,9 @@ This is a reference post on PCA in which we walk through a toy example using ran
 import os
 import sys
 import importlib
-sys.path.append("C:/hc/rambling")
-sys.path.append("C:/hc/xfactors/src")
-sys.path.append("C:/hc/xtuples/src")
-os.environ["MODULE"] = "c:/hc/src/"
+sys.path.append("C:/rambling")
+sys.path.append("C:/xfactors/src")
+sys.path.append("C:/xtuples/src")
 ```
 
 ```{python}
@@ -67,7 +63,7 @@ First, we'll generate some random, diagonal covariance, gaussian noise, that we'
 ```{python}
 #| code-fold: false
 #| code-summary: "Factors"
-factors = xf.rand.gaussian((N_SAMPLES, N_FACTORS))
+factors = xf.utils.rand.gaussian((N_SAMPLES, N_FACTORS))
 factors_df = pandas.DataFrame(
     factors, index=SAMPLES, columns=FACTORS,
 )
@@ -78,7 +74,7 @@ As we can see, the sample covariance is (roughly), unit diagonal:
 ```{python}
 #| code-fold: false
 #| code-summary: "Factor Covariance"
-xf.rendering.render_df_color_range(factors_df.cov())
+xf.visuals.rendering.render_df_color_range(factors_df.cov())
 ```
 
 The covariance between two variables increases (decreases) the more one variable is above (below) it's mean, conditional on the other variable also being above it's mean.
@@ -88,7 +84,7 @@ As such, if we plot our individual factors against one another in 2D we can see 
 ```{python}
 #| code-fold: false
 #| code-summary: "Factor Density: 2D"
-xf.graphs.df_density_pair_chart(factors_df, key="factor")
+xf.visuals.graphs.df_density_pair_chart(factors_df, key="factor")
 ```
 
 Simply follow either the x or y axis, and note that the conditional average of the other axis (the other variable) remains constant: implying (roughly) zero covariance.
@@ -98,8 +94,8 @@ If we plot the 1D density, we can see that each factor also has (roughly) the sa
 ```{python}
 #| code-fold: false
 #| code-summary: "Factor Density: 1D"
-xf.graphs.df_line_chart(
-    xf.densities.gaussian_kde_1d_df(
+xf.visuals.graphs.df_line_chart(
+    xf.visuals.densities.gaussian_kde_1d_df(
         {
             i: factors[:, i]
             for i in range(N_FACTORS)
@@ -118,7 +114,7 @@ Given this, we'll now generate another random gaussian weight matrix:
 ```{python}
 #| code-fold: false
 #| code-summary: "Betas"
-weights = xf.rand.gaussian((N_FACTORS, N_FEATURES))
+weights = xf.utils.rand.gaussian((N_FACTORS, N_FEATURES))
 ```
 
 Which we can render as so:
@@ -129,7 +125,7 @@ Which we can render as so:
 weights_df = pandas.DataFrame(
     weights, columns=FEATURES, index=FACTORS
 )
-xf.rendering.render_df_color_range(weights_df)
+xf.visuals.rendering.render_df_color_range(weights_df)
 ```
 
 And which we'll then multiply with our factors, to get some features:
@@ -148,7 +144,7 @@ As one can see in the resulting 2D density plot, we've now added some linear dep
 ```{python}
 #| code-fold: false
 #| code-summary: "Feature Density: 2D"
-for chart in xf.graphs.df_density_pair_chart(
+for chart in xf.visuals.graphs.df_density_pair_chart(
     features_df, key="feature", separate=True
 ):
     display(chart)
@@ -159,7 +155,7 @@ Which we can confirm by calculating our feature (sample) covariance matrix:
 ```{python}
 #| code-fold: false
 #| code-summary: "Feature Covariance"
-xf.rendering.render_df_color_range(features_df.cov())
+xf.visuals.rendering.render_df_color_range(features_df.cov())
 ```
 
 #### Problem statement
@@ -187,7 +183,7 @@ def threshold(df, k, quantile):
     return df[df[k] > numpy.quantile(df[k], quantile)]
 
 def de_rotate(df):
-    df = xf.graphs.f_df_density_pair_df(
+    df = xf.visuals.graphs.f_df_density_pair_df(
         FEATURES, "pair",
     )(df)
     z = "density"
@@ -225,7 +221,7 @@ Which we'll plot with separate color scales, so you can see more clearly how the
 #| code-fold: false
 #| code-summary: "De-Rotated Features"
 for derotated_df in de_rotate(features_df):
-    display(xf.graphs.df_scatter_chart(
+    display(xf.visuals.graphs.df_scatter_chart(
         derotated_df,
         x="x",
         y="y",
@@ -377,7 +373,7 @@ We can de-rotate our features into factor space, by multiplication with our orth
 #| code-fold: false
 #| code-summary: "Factors - Scaled"
 factors_scaled = features @ orthog
-xf.graphs.df_density_pair_chart(
+xf.visuals.graphs.df_density_pair_chart(
     pandas.DataFrame(
         factors_scaled,
         columns=FACTORS,
@@ -396,7 +392,7 @@ factors_descaled = numpy.divide(
     factors_scaled,
     xf.expand_dims(scale, 0, 1)
 )
-xf.graphs.df_density_pair_chart(
+xf.visuals.graphs.df_density_pair_chart(
     pandas.DataFrame(
         factors_descaled,
         columns=FACTORS,
@@ -415,7 +411,7 @@ features_roundtrip = orthog @ numpy.multiply(
     factors_descaled,
     xf.expand_dims(scale, 0, 1)
 ).T
-for chart in xf.graphs.df_density_pair_chart(
+for chart in xf.visuals.graphs.df_density_pair_chart(
     pandas.DataFrame(
         features_roundtrip.T,
         columns=FEATURES,
@@ -435,15 +431,15 @@ Our rotation matrix, above, allows us to map our feature space into the (presuma
 
 This helps us combat the 'curse of dimensionality' (the tendency for distance measures to explode as the number of dimensions increases), as we can train downstream models using the smaller dimensional (implied) factors, rather than the (potentially *much*) larger dimensional features.
 
-The embedding matrix itself also encodes useful information about the correlation structure of our features, which can often be interpreted directly (for instance, see the below two posts analysing single name [equity returns](../pca_equity/index.qmd) and bond / swap [yield curves](../pca_rates/index.qmd), respectively).
+The embedding matrix itself also encodes useful information about the correlation structure of our features, which can often be interpreted directly (for instance, see the below two posts analysing single name [equity returns](../pca_equity/index.qmd) and bond / swap [yield curves](../rates_pca/index.qmd), respectively).
 
-PCA also naturally lends itself to a number of different extensions - particularly once we move from a strict eigen-decomposition, as above, onto a more general gradient based optimisation approach, such as in this post on [ppca](../ppca/index.qmd).
+PCA also naturally lends itself to a number of different extensions - particularly once we move from a strict eigen-decomposition, as above, onto a more general gradient based optimisation approach, such as in this post on [ppca](../../wip/ppca/index.qmd).
 
 ### Related posts
 
 Below are two practical examples of using PCA:
 
 - To extract [equity market](../pca_equity/index.qmd) factors, from daily single-name equity returns.
-- To extract [yield curve](../pca_rates/index.qmd) factors, daily per-tenor bond and swap curve yields.
+- To extract [yield curve](../rates_pca/index.qmd) factors, daily per-tenor bond and swap curve yields.
 
 Also, see [here](../orthogonality/index.qmd) for a primer on orthogonality (useful for understanding the decomposition above).

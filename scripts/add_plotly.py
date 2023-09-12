@@ -49,6 +49,11 @@ def add_plotly(fp):
     assert plotly_include in result
 
 import sys
+import glob
 
 if __name__ == "__main__":
-    add_plotly("./_site/" + sys.argv[1] + "/index.html")
+    if len(sys.argv) > 1:
+        add_plotly("./_site/" + sys.argv[1] + "/index.html")
+    else:
+        for fp in glob.glob("./_site/*/index.html"):
+            add_plotly(fp)

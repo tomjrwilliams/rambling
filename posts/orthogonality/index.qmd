@@ -8,8 +8,6 @@ execute:
   daemon: false
 ---
 
-In this post, ...
-
 This post is a collection of little visualisations intended to help one build up intuition for the notions of vector and matrix orthogonality.
 
 ```{python}
@@ -23,10 +21,9 @@ This post is a collection of little visualisations intended to help one build up
 import os
 import sys
 import importlib
-sys.path.append("C:/hc/rambling")
-sys.path.append("C:/hc/xfactors/src")
-sys.path.append("C:/hc/xtuples/src")
-os.environ["MODULE"] = "c:/hc/src/"
+sys.path.append("C:/rambling")
+sys.path.append("C:/xfactors/src")
+sys.path.append("C:/xtuples/src")
 ```
 
 ```{python}
@@ -37,7 +34,6 @@ import numpy
 import pandas
 import jax
 import jaxopt
-import latexify
 
 import xtuples as xt
 import xfactors as xf
@@ -45,16 +41,13 @@ import xfactors as xf
 
 ### Orthogonal vectors
 
-Two vectors are orthogonal to one another if their dot product is zero, where the dot product is as below (forgive the slightly odd formulation - I'm still getting the hang of latexify).
+Two vectors are orthogonal to one another if their dot product is zero, where the dot product can be implemented as:
 
 ```{python}
-#| echo: false
-#| code-fold: true
+#| code-fold: false
 #| code-summary: "Dot"
-@latexify.function
 def dot(x1, x2):
     return sum(map(operator.product, x1, x2))
-dot
 ```
 
 The dot product of two vectors gives the magnitude of the projection of one onto the other.
@@ -76,7 +69,7 @@ To visualise this, we can plot the dot product of a set of random unit magnitude
 #| code-summary: "Unit Vector Plot"
 def unit_vector_plot(rows, cols):
     unit_v = jax.numpy.eye(2)
-    return xf.graphs.vector_ray_plot(
+    return xf.visuals.graphs.vector_ray_plot(
         xt.iTuple.range(rows)
         .map(lambda _: xt.iTuple.range(cols).map(
             lambda _: (
@@ -85,7 +78,7 @@ def unit_vector_plot(rows, cols):
                     *unit_vector_projection(v, unit_v[0]),
                     *unit_vector_projection(v, unit_v[1]),
                 ])
-            )(xf.rand.norm_gaussian((2,)))
+            )(xf.utils.rand.norm_gaussian((2,)))
         )),
         markers=True,
         color=None,
@@ -117,8 +110,8 @@ The set of all 2D vectors of unit magnitude forms a circle:
 ```{python}
 #| code-fold: false
 #| code-summary: "Unit Sphere - 2D"
-xf.graphs.vector_ray_plot(
-    xf.rand.norm_gaussian((25, 2,)),
+xf.visuals.graphs.vector_ray_plot(
+    xf.utils.rand.norm_gaussian((25, 2,)),
     color=None,
 )
 ```
@@ -128,8 +121,8 @@ The set of all 3D unit vectors forms a sphere:
 ```{python}
 #| code-fold: false
 #| code-summary: "Unit Sphere - 3D"
-xf.graphs.vector_ray_plot(
-    xf.rand.norm_gaussian((25, 3,)),
+xf.visuals.graphs.vector_ray_plot(
+    xf.utils.rand.norm_gaussian((25, 3,)),
     _3d=True,
     color=None,
 )
@@ -153,10 +146,10 @@ For instance, in two dimensions, each of the colored pairs of vectors in the bel
 ```{python}
 #| code-fold: false
 #| code-summary: "Basis Vectors - 2D"
-xf.graphs.vector_ray_plot(
+xf.visuals.graphs.vector_ray_plot(
     numpy.concatenate([
         numpy.expand_dims(numpy.eye(2), 0),
-        xf.rand.orthogonal(2, shape = (5,))
+        xf.utils.rand.orthogonal(2, shape = (5,))
     ]),
     color="g",
 )
@@ -167,10 +160,10 @@ And, in three dimensions, each of the colored triplets of vectors in the below i
 ```{python}
 #| code-fold: false
 #| code-summary: "Basis Vectors - 3D"
-xf.graphs.vector_ray_plot(
+xf.visuals.graphs.vector_ray_plot(
     numpy.concatenate([
         numpy.expand_dims(numpy.eye(3), 0),
-        xf.rand.orthogonal(3, shape = (5,))
+        xf.utils.rand.orthogonal(3, shape = (5,))
     ]),
     _3d=True,
     color="g",
@@ -193,10 +186,10 @@ For instance, given a couple of random unit norm matrices:
 #| code-fold: false
 #| code-summary: "Random matrices"
 N = 2
-M1 = xf.rand.norm_gaussian((N, N,))
-M2 = xf.rand.norm_gaussian((N, N,))
+M1 = xf.utils.rand.norm_gaussian((N, N,))
+M2 = xf.utils.rand.norm_gaussian((N, N,))
 def render_matrix(m):
-    return xf.rendering.render_df_color_range(
+    return xf.visuals.rendering.render_df_color_range(
         pandas.DataFrame(m),
         v_min=-1.,
         v_max=.1,
@@ -214,7 +207,7 @@ def vector_projection(v1, v2):
     dot = jax.numpy.dot(v1, v2)
     return abs(dot) * v2, v2
 
-xf.graphs.vector_ray_plot(
+xf.visuals.graphs.vector_ray_plot(
     [
         [
             numpy.stack([
@@ -252,7 +245,7 @@ Given the definition of an orthogonal matrix, we can see that multiplication by 
 ```{python}
 #| code-fold: false
 #| code-summary: "XX.T"
-M_orth = xf.rand.orthogonal(2)
+M_orth = xf.utils.rand.orthogonal(2)
 render_matrix(numpy.matmul(M_orth, M_orth.T))
 ```
 
@@ -286,7 +279,7 @@ Which we can use on each of our random matrices above, as so:
 #| code-summary: "Orthogonalised Matrices"
 M1_orth = orthogonalise(M1)
 M2_orth = orthogonalise(M2)
-xf.graphs.vector_ray_plot(
+xf.visuals.graphs.vector_ray_plot(
     [
         numpy.stack([M_orig, M_orth])
         for M_orig, M_orth in zip([M1, M2], [M1_orth, M2_orth])
@@ -316,9 +309,9 @@ Turning back to the interpretation of an orthogonal matrix as a rotation, let's 
 ```{python}
 #| code-fold: false
 #| code-summary: "Point Cloud"
-cloud = xf.rand.gaussian((10, 2,))
+cloud = xf.utils.rand.gaussian((10, 2,))
 def plot_cloud(M_, T = False):
-    return xf.graphs.vector_ray_plot(
+    return xf.visuals.graphs.vector_ray_plot(
         [
             [
                 cloud, M_, numpy.matmul(cloud, M_),
@@ -379,4 +372,4 @@ This 'opposite' reflection just reverses our original rotation - taking us from 
 
 ### Related posts
 
-Orthogonality is key to understanding [PCA](../pca/index.qmd), and is how we derive the closed form expression for multi-variate [linear regression](../linreg/index.qmd).
+Orthogonality is key to understanding [PCA](../pca/index.qmd), and is how we derive the closed form expression for multi-variate [linear regression](../../wip/linreg/index.qmd).

@@ -1,11 +1,10 @@
 ---
-title: "(WIP) Intuition: Gaussian Mixture Model"
+title: "Intuition: Gaussian Mixture Model"
 author: "Tom Williams"
-date: "2023-08-07"
 categories: []
 draft: false
 execute:
   daemon: false
 ---
 
-(Work In Progress)
+Work In Progress

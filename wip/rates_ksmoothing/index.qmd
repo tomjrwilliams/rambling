@@ -1,14 +1,13 @@
 ---
-title: "(WIP) Rates: Kernel Matrix Completion"
+title: "Rates: Kernel Matrix Completion"
 author: "Tom Williams"
-date: "2023-08-08"
 categories: []
 draft: false
 execute:
   daemon: false
 ---
 
-(Work In Progress)
+Work In Progress
 
 In this post, we show how to combine our previous work on tenor kernels with matrix completion methods to make yield predictions for completely new tenors on the curve.
 
